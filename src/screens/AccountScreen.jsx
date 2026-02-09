@@ -197,11 +197,62 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
     alert("Código copiado!");
   };
 
+  // Função Melhorada de Suporte WhatsApp
   const openSupport = (order) => {
-    const id = order.id ? order.id.toString().slice(0, 8).toUpperCase() : "???";
-    const msg = `Olá! Preciso de ajuda com o pedido #${id}.`;
+    // 1. Dados Básicos
+    const orderId =
+      order.display_id ||
+      (order.id ? order.id.toString().slice(0, 8).toUpperCase() : "???");
+
+    // Tenta pegar o nome do usuário logado ou do pedido
+    const customerName = user?.name || order.customer_name || "Cliente";
+
+    // Formata Data e Valor
+    const date = new Date(order.created_at).toLocaleDateString("pt-BR");
+    const total = Number(order.total).toFixed(2).replace(".", ",");
+
+    // 2. Monta a Lista de Itens Bonitinha
+    // Ex: "▪️ 1x Camiseta Coach (M)"
+    const itemsSummary = Array.isArray(order.items)
+      ? order.items
+          .map((item) => {
+            const qtd = item.quantity || 1;
+            const nome = item.product_name || item.name || "Produto";
+
+            // Detalhe do tamanho (inteligente)
+            let sizeInfo = "";
+            if (item.isKit) {
+              sizeInfo = `[Top:${item.size_top || "?"}/Bot:${item.size_bottom || "?"}]`;
+            } else {
+              sizeInfo = `[${item.size_standard || "U"}]`;
+            }
+
+            return `▪️ ${qtd}x ${nome} ${sizeInfo}`;
+          })
+          .join("\n")
+      : "▪️ (Ver itens no sistema)";
+
+    // 3. Mensagem Final (Usando * para negrito no WhatsApp)
+    const text = `
+Olá, equipe UniformeCoach! 👋
+
+Preciso de ajuda sobre o *Pedido #${orderId}*.
+
+👤 *Cliente:* ${customerName}
+📅 *Data:* ${date}
+💰 *Valor:* R$ ${total}
+
+📦 *Resumo:*
+${itemsSummary}
+
+------------------------------
+Minha dúvida é:
+`.trim(); // .trim() remove espaços vazios no começo e fim
+
+    // 4. Abre o WhatsApp
+    const phone = "551591762066"; // Seu número
     window.open(
-      `https://wa.me/551591762066?text=${encodeURIComponent(msg)}`,
+      `https://wa.me/${phone}?text=${encodeURIComponent(text)}`,
       "_blank",
     );
   };
@@ -351,7 +402,7 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
                 const orderIdShort =
                   order.display_id ||
                   (order.id
-                    ? order.id.toString().slice(0, 6).toUpperCase()
+                    ? order.id.toString().slice(0, 8).toUpperCase()
                     : "???");
 
                 // Garante que items é um array, mesmo que o JSON venha nulo
@@ -441,194 +492,199 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
       </div>
 
       {/* --- MODAL DETALHES (CORRIGIDO) --- */}
-      {selectedOrder && createPortal (
-        // MUDANÇA 1: z-[9999] garante que o modal fique ACIMA do menu de baixo
-        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
-          <div
-            className="absolute inset-0"
-            onClick={() => setSelectedOrder(null)}
-          ></div>
+      {selectedOrder &&
+        createPortal(
+          // MUDANÇA 1: z-[9999] garante que o modal fique ACIMA do menu de baixo
+          <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
+            <div
+              className="absolute inset-0"
+              onClick={() => setSelectedOrder(null)}
+            ></div>
 
-          {/* MUDANÇA 2: Ajuste de altura para max-h-[80vh] para sobrar espaço e não colar no topo/fundo */}
-          <div className="bg-[#0f172a] border-t sm:border border-white/10 w-full max-w-md sm:rounded-3xl rounded-t-[2rem] shadow-2xl flex flex-col relative z-10 animate-slide-up h-[80vh] sm:h-auto sm:max-h-[85vh]">
-            {/* --- CABEÇALHO --- */}
-            <div className="p-6 border-b border-white/5 flex justify-between items-start bg-[#0f172a] shrink-0 rounded-t-[2rem]">
-              <div>
-                <p className="text-xs text-white/40 font-bold uppercase tracking-wider mb-1">
-                  Detalhes do Pedido
-                </p>
-                <div
-                  className="flex items-center gap-2"
-                  onClick={() =>
-                    copyToClipboard(
-                      selectedOrder.display_id || selectedOrder.id,
-                    )
-                  }
+            {/* MUDANÇA 2: Ajuste de altura para max-h-[80vh] para sobrar espaço e não colar no topo/fundo */}
+            <div className="bg-[#0f172a] border-t sm:border border-white/10 w-full max-w-md sm:rounded-3xl rounded-t-[2rem] shadow-2xl flex flex-col relative z-10 animate-slide-up h-[80vh] sm:h-auto sm:max-h-[85vh]">
+              {/* --- CABEÇALHO --- */}
+              <div className="p-6 border-b border-white/5 flex justify-between items-start bg-[#0f172a] shrink-0 rounded-t-[2rem]">
+                <div>
+                  <p className="text-xs text-white/40 font-bold uppercase tracking-wider mb-1">
+                    Detalhes do Pedido
+                  </p>
+                  <div
+                    className="flex items-center gap-2"
+                    onClick={() =>
+                      copyToClipboard(
+                        selectedOrder.display_id || selectedOrder.id,
+                      )
+                    }
+                  >
+                    <h3 className="text-2xl font-bold text-white font-mono">
+                      #
+                      {selectedOrder.display_id ||
+                        (selectedOrder.id
+                          ? selectedOrder.id
+                              .toString()
+                              .slice(0, 8)
+                              .toUpperCase()
+                          : "???")}
+                    </h3>
+                    <Copy
+                      size={14}
+                      className="text-primary cursor-pointer hover:scale-110 transition-transform"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 text-white transition-colors"
                 >
-                  <h3 className="text-2xl font-bold text-white font-mono">
-                    #
-                    {selectedOrder.display_id ||
-                      (selectedOrder.id
-                        ? selectedOrder.id.toString().slice(0, 8).toUpperCase()
-                        : "???")}
-                  </h3>
-                  <Copy
-                    size={14}
-                    className="text-primary cursor-pointer hover:scale-110 transition-transform"
-                  />
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* --- CORPO COM SCROLL --- */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#0f172a]">
+                {(() => {
+                  const status = getStatusConfig(selectedOrder);
+                  return (
+                    <div
+                      className={`p-4 rounded-2xl border ${status.border} ${status.bg} flex items-center gap-4`}
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full ${status.bg.replace("/10", "/20")} flex items-center justify-center ${status.color}`}
+                      >
+                        {status.icon}
+                      </div>
+                      <div>
+                        <p className={`text-sm font-bold ${status.color}`}>
+                          {status.label}
+                        </p>
+                        <p className="text-[10px] text-white/50">
+                          Atualizado em {formatDate(selectedOrder.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-white/40 uppercase font-bold">
+                      Data
+                    </p>
+                    <p className="text-sm font-bold text-white flex items-center gap-2">
+                      <Calendar size={14} className="text-white/30" />{" "}
+                      {formatDate(selectedOrder.created_at)}
+                    </p>
+                    <p className="text-xs text-white/50 pl-6">
+                      {formatTime(selectedOrder.created_at)}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-white/40 uppercase font-bold">
+                      Pagamento
+                    </p>
+                    <p className="text-sm font-bold text-white flex items-center gap-2">
+                      <CreditCard size={14} className="text-white/30" />
+                      {selectedOrder.payment_method?.includes("pix")
+                        ? "Pix"
+                        : "Cartão/Outro"}
+                    </p>
+                    <p className="text-xs text-white/50 pl-6">
+                      R$ {formatMoney(selectedOrder.total)}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <ShoppingBag size={14} /> Itens (
+                    {Array.isArray(selectedOrder.items)
+                      ? selectedOrder.items.length
+                      : 0}
+                    )
+                  </h4>
+                  <div className="space-y-3">
+                    {Array.isArray(selectedOrder.items) &&
+                      selectedOrder.items.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex gap-4 bg-white/5 p-4 rounded-2xl border border-white/5"
+                        >
+                          <div className="w-12 h-12 bg-navy rounded-xl flex items-center justify-center text-white/20 border border-white/5 flex-shrink-0 overflow-hidden relative">
+                            {item.image ? (
+                              <img
+                                src={item.image}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <Package size={20} />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start">
+                              <p className="text-sm font-bold text-white truncate pr-2">
+                                {getItemName(item)}
+                              </p>
+                              <p className="text-sm font-bold text-white">
+                                R${" "}
+                                {formatMoney(
+                                  (item.price || 0) * (item.quantity || 1),
+                                )}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white/70 font-bold border border-white/5">
+                                Qtd: {item.quantity}
+                              </span>
+                              {item.isKit ? (
+                                <>
+                                  <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
+                                    T:{" "}
+                                    {item.selectedSizes?.top || item.size_top}
+                                  </span>
+                                  <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
+                                    B:{" "}
+                                    {item.selectedSizes?.bottom ||
+                                      item.size_bottom}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
+                                  T:{" "}
+                                  {item.selectedSizes?.standard ||
+                                    item.size_standard ||
+                                    "U"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 text-white transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
 
-            {/* --- CORPO COM SCROLL --- */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#0f172a]">
-              {(() => {
-                const status = getStatusConfig(selectedOrder);
-                return (
-                  <div
-                    className={`p-4 rounded-2xl border ${status.border} ${status.bg} flex items-center gap-4`}
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-full ${status.bg.replace("/10", "/20")} flex items-center justify-center ${status.color}`}
-                    >
-                      {status.icon}
-                    </div>
-                    <div>
-                      <p className={`text-sm font-bold ${status.color}`}>
-                        {status.label}
-                      </p>
-                      <p className="text-[10px] text-white/50">
-                        Atualizado em {formatDate(selectedOrder.created_at)}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-[10px] text-white/40 uppercase font-bold">
-                    Data
-                  </p>
-                  <p className="text-sm font-bold text-white flex items-center gap-2">
-                    <Calendar size={14} className="text-white/30" />{" "}
-                    {formatDate(selectedOrder.created_at)}
-                  </p>
-                  <p className="text-xs text-white/50 pl-6">
-                    {formatTime(selectedOrder.created_at)}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] text-white/40 uppercase font-bold">
-                    Pagamento
-                  </p>
-                  <p className="text-sm font-bold text-white flex items-center gap-2">
-                    <CreditCard size={14} className="text-white/30" />
-                    {selectedOrder.payment_method?.includes("pix")
-                      ? "Pix"
-                      : "Cartão/Outro"}
-                  </p>
-                  <p className="text-xs text-white/50 pl-6">
+              {/* --- RODAPÉ (Valor Total e Botão Ajuda) --- */}
+              <div className="p-6 border-t border-white/10 bg-[#0f172a] shrink-0 pb-8 sm:pb-6 rounded-b-[2rem] sm:rounded-b-3xl">
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm text-white/50">Valor Total</p>
+                  <p className="text-2xl font-bold text-primary">
                     R$ {formatMoney(selectedOrder.total)}
                   </p>
                 </div>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <ShoppingBag size={14} /> Itens (
-                  {Array.isArray(selectedOrder.items)
-                    ? selectedOrder.items.length
-                    : 0}
-                  )
-                </h4>
-                <div className="space-y-3">
-                  {Array.isArray(selectedOrder.items) &&
-                    selectedOrder.items.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="flex gap-4 bg-white/5 p-4 rounded-2xl border border-white/5"
-                      >
-                        <div className="w-12 h-12 bg-navy rounded-xl flex items-center justify-center text-white/20 border border-white/5 flex-shrink-0 overflow-hidden relative">
-                          {item.image ? (
-                            <img
-                              src={item.image}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Package size={20} />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start">
-                            <p className="text-sm font-bold text-white truncate pr-2">
-                              {getItemName(item)}
-                            </p>
-                            <p className="text-sm font-bold text-white">
-                              R${" "}
-                              {formatMoney(
-                                (item.price || 0) * (item.quantity || 1),
-                              )}
-                            </p>
-                          </div>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white/70 font-bold border border-white/5">
-                              Qtd: {item.quantity}
-                            </span>
-                            {item.isKit ? (
-                              <>
-                                <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
-                                  T: {item.selectedSizes?.top || item.size_top}
-                                </span>
-                                <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
-                                  B:{" "}
-                                  {item.selectedSizes?.bottom ||
-                                    item.size_bottom}
-                                </span>
-                              </>
-                            ) : (
-                              <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
-                                T:{" "}
-                                {item.selectedSizes?.standard ||
-                                  item.size_standard ||
-                                  "U"}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
+                <button
+                  onClick={() => openSupport(selectedOrder)}
+                  className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all border border-white/10 flex items-center justify-center gap-2 active:scale-95"
+                >
+                  <HelpCircle size={18} className="text-white/60" />
+                  Ajuda com este pedido
+                </button>
               </div>
             </div>
-
-            {/* --- RODAPÉ (Valor Total e Botão Ajuda) --- */}
-            <div className="p-6 border-t border-white/10 bg-[#0f172a] shrink-0 pb-8 sm:pb-6 rounded-b-[2rem] sm:rounded-b-3xl">
-              <div className="flex justify-between items-center mb-4">
-                <p className="text-sm text-white/50">Valor Total</p>
-                <p className="text-2xl font-bold text-primary">
-                  R$ {formatMoney(selectedOrder.total)}
-                </p>
-              </div>
-              <button
-                onClick={() => openSupport(selectedOrder)}
-                className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all border border-white/10 flex items-center justify-center gap-2 active:scale-95"
-              >
-                <HelpCircle size={18} className="text-white/60" />
-                Ajuda com este pedido
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body,
+        )}
 
       <BottomNav active="account" onNavigate={onNavigate} />
     </div>
