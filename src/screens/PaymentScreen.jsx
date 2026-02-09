@@ -173,14 +173,20 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
     }
   };
 
-  // --- 2. CRIAR PEDIDO (MANTIDA) ---
+  // --- 2. CRIAR PEDIDO (MODIFICADO) ---
   const createOrder = async (
     paymentMethod,
     externalId = null,
     status = "Pendente",
   ) => {
     try {
+      // 1. ADICIONE ESTA LINHA (Gera o ID curto):
+      const shortId = Math.random().toString(36).substring(2, 8).toUpperCase();
+
       const newOrder = {
+        // 2. ADICIONE ESTA LINHA (Envia o ID para o banco):
+        display_id: shortId,
+
         customer_name: user.name,
         customer_phone: user.phone,
         total: total,
@@ -207,7 +213,7 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
       throw error;
     }
   };
-
+  
   // --- 3. GERAR PIX (MANTIDA) ---
   const generatePixPayload = (key, name, city, amount, txid = "***") => {
     const cleanStr = (str) =>
@@ -312,7 +318,11 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
       `🕒 *Data:* ${dataHora}\n` +
       `💵 *Total:* R$ ${total.toFixed(2)}\n\n` +
       `📝 *Resumo:*\n${itemsList}\n\n` +
-      `📸 Comprovante em anexo abaixo:`;
+      `📸 Comprovante em anexo abaixo:
+      
+      
+      
+      `;
 
     const url = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");

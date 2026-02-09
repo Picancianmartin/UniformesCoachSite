@@ -30,7 +30,8 @@ export default function App() {
 
       // 2. Verifica se existe usuário E se o email é o do admin
       // (Ou você pode verificar session.user.user_metadata.role === 'admin')
-      const isUserAdmin = session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL; 
+      const isUserAdmin =
+        session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL;
 
       setIsAdmin(isUserAdmin);
     };
@@ -40,7 +41,8 @@ export default function App() {
     // 3. Opcional: Escutar mudanças (login/logout) em tempo real
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        const isUserAdmin = session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL;
+        const isUserAdmin =
+          session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL;
         setIsAdmin(isUserAdmin);
       },
     );
@@ -337,9 +339,15 @@ export default function App() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
       </div>
 
-      <div className="relative z-10 max-w-[428px] mx-auto min-h-screen">
+      <div className="relative z-10 max-w-[428px] mx-auto min-h-screen pb-16">
         <Toast show={toast.show} message={toast.message} icon={toast.icon} />
         {screens[screen]}
+        <Footer
+          brandName="Coach Store"
+          portfolioUrl="https://pietramartin.dev"
+          creditName="PM"
+          showCredit={true}
+        />
       </div>
 
       {screen !== "signup" &&
@@ -352,12 +360,7 @@ export default function App() {
             cartCount={cart.length}
           />
         )}
-      <Footer
-        brandName="CoachStore"
-        portfolioUrl="https://pietramartin.dev"
-        creditName="Pietra Martin"
-        showCredit={true}
-      />
+    
     </div>
   );
 }

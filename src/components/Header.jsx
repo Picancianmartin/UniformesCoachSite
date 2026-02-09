@@ -95,6 +95,7 @@ const Header = ({
               <User size={22} />
             </button>
           )}
+          
         </div>
       </div>
     </header>

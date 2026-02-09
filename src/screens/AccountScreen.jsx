@@ -213,7 +213,7 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
 
     // 2. Monta a Lista de Itens Bonitinha
     // Ex: "▪️ 1x Camiseta Coach (M)"
-    const itemsSummary = Array.isArray(order.items)
+    const itemsList = Array.isArray(order.items)
       ? order.items
           .map((item) => {
             const qtd = item.quantity || 1;
@@ -243,10 +243,13 @@ Preciso de ajuda sobre o *Pedido #${orderId}*.
 💰 *Valor:* R$ ${total}
 
 📦 *Resumo:*
-${itemsSummary}
+${itemsList}
 
 ------------------------------
 Minha dúvida é:
+
+
+
 `.trim(); // .trim() remove espaços vazios no começo e fim
 
     // 4. Abre o WhatsApp
