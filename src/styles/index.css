@@ -1,7 +1,7 @@
 /* --- IMPORTS DE FONTES --- */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Antic+Didone&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Antic+Didone&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -19,7 +19,7 @@
   .glass-panel {
     @apply bg-navy-light/40 backdrop-blur-md border border-white/5 shadow-lg transition-all duration-300;
   }
-  
+
   .glass-panel-hover {
     /* Hover mais suave: Sombra menor e movimento curto */
     @apply hover:bg-navy-light/60 hover:border-white/10 hover:shadow-xl hover:-translate-y-0.5;
@@ -76,10 +76,10 @@
 }
 
 /* --- ESTILOS DA MARCA --- */
-.brandMix { 
-  display: inline-flex; 
-  align-items: baseline; 
-  gap: 0.02em; 
+.brandMix {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.02em;
 }
 
 .brandCoach {
@@ -93,4 +93,22 @@
   font-family: "Antic Didone", serif;
   font-weight: 400;
   letter-spacing: 0.02em;
+}
+
+@layer base {
+  /* Força tamanho 16px em todos os inputs para evitar zoom no iOS */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Opcional: Se quiser fonte menor apenas no Desktop, use media queries */
+  @media (min-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: 14px !important; /* Ou o tamanho que você preferir no PC */
+    }
+  }
 }

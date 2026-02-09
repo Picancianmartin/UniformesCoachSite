@@ -136,6 +136,8 @@ export default function App() {
     console.log("=== INICIANDO SALVAMENTO ===");
     console.log("Dados recebidos:", orderData);
 
+    const shortId = Math.random().toString(36).substring(2, 8).toUpperCase();
+
     try {
       // 1. SALVAR A CAPA DO PEDIDO
       const { data: order, error: orderError } = await supabase
@@ -143,7 +145,7 @@ export default function App() {
         .insert([
           {
             // Verifique se os nomes das colunas no Supabase são EXATAMENTE estes:
-            display_id: orderData.displayId,
+            display_id: shortId,
             customer_name: orderData.customer.name,
             customer_phone: orderData.customer.phone,
             total: parseFloat(orderData.total), // Garante que é número
