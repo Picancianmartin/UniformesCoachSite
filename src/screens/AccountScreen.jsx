@@ -24,6 +24,7 @@ import {
   Box,
 } from "lucide-react";
 import BottomNav from "../components/BottomNav";
+import { createPortal } from "react-dom";
 import Header from "../components/Header";
 import logoAzul from "../assets/logodavidD.png"; // Imagem do "N" azul para o logo central
 
@@ -440,7 +441,7 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
       </div>
 
       {/* --- MODAL DETALHES (CORRIGIDO) --- */}
-      {selectedOrder && (
+      {selectedOrder && createPortal (
         // MUDANÇA 1: z-[9999] garante que o modal fique ACIMA do menu de baixo
         <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
           <div
@@ -625,7 +626,8 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <BottomNav active="account" onNavigate={onNavigate} />

@@ -351,9 +351,9 @@ export default function App() {
           />
         )}
       <Footer
-        brandName="UniformeCoach"
-        portfolioUrl="https://seusite.com/cases/uniformecoach"
-        creditName="Pietra Cancian"
+        brandName="CoachStore"
+        portfolioUrl="https://pietramartin.dev"
+        creditName="Pietra Martin"
         showCredit={true}
       />
     </div>
