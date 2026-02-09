@@ -447,7 +447,7 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
             onClick={() => setSelectedOrder(null)}
           ></div>
 
-          <div className="bg-[#0f172a] border-t sm:border border-white/10 w-full max-w-md sm:rounded-3xl rounded-t-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[95vh] relative z-10 animate-slide-up">
+          <div className="bg-[#0f172a] border-t sm:border border-white/10 w-full max-w-md sm:rounded-3xl rounded-t-[2rem] overflow-hidden shadow-2xl flex flex-col h-[85vh] relative z-10 animate-slide-up">
             <div className="p-6 border-b border-white/5 flex justify-between items-start bg-white/[0.02]">
               <div>
                 <p className="text-xs text-white/40 font-bold uppercase tracking-wider mb-1">
