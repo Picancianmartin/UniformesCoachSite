@@ -439,16 +439,19 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
         </div>
       </div>
 
-      {/* --- MODAL DETALHES --- */}
+      {/* --- MODAL DETALHES (CORRIGIDO) --- */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
+        // MUDANÇA 1: z-[9999] garante que o modal fique ACIMA do menu de baixo
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
           <div
             className="absolute inset-0"
             onClick={() => setSelectedOrder(null)}
           ></div>
 
-          <div className="bg-[#0f172a] border-t sm:border border-white/10 w-full max-w-md sm:rounded-3xl rounded-t-[2rem] overflow-hidden shadow-2xl flex flex-col h-[85vh] relative z-10 animate-slide-up">
-            <div className="p-6 border-b border-white/5 flex justify-between items-start bg-white/[0.02]">
+          {/* MUDANÇA 2: Ajuste de altura para max-h-[80vh] para sobrar espaço e não colar no topo/fundo */}
+          <div className="bg-[#0f172a] border-t sm:border border-white/10 w-full max-w-md sm:rounded-3xl rounded-t-[2rem] shadow-2xl flex flex-col relative z-10 animate-slide-up h-[80vh] sm:h-auto sm:max-h-[85vh]">
+            {/* --- CABEÇALHO --- */}
+            <div className="p-6 border-b border-white/5 flex justify-between items-start bg-[#0f172a] shrink-0 rounded-t-[2rem]">
               <div>
                 <p className="text-xs text-white/40 font-bold uppercase tracking-wider mb-1">
                   Detalhes do Pedido
@@ -482,7 +485,8 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
               </button>
             </div>
 
-            <div className="overflow-y-auto p-6 space-y-8 flex-1">
+            {/* --- CORPO COM SCROLL --- */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#0f172a]">
               {(() => {
                 const status = getStatusConfig(selectedOrder);
                 return (
@@ -561,7 +565,6 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
                             <Package size={20} />
                           )}
                         </div>
-
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start">
                             <p className="text-sm font-bold text-white truncate pr-2">
@@ -574,30 +577,27 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
                               )}
                             </p>
                           </div>
-
                           <div className="flex flex-wrap gap-2 mt-2">
                             <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white/70 font-bold border border-white/5">
                               Qtd: {item.quantity}
                             </span>
-
                             {item.isKit ? (
                               <>
                                 <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
-                                  Top:{" "}
-                                  {item.selectedSizes?.top || item.size_top}
+                                  T: {item.selectedSizes?.top || item.size_top}
                                 </span>
                                 <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
-                                  Bot:{" "}
+                                  B:{" "}
                                   {item.selectedSizes?.bottom ||
                                     item.size_bottom}
                                 </span>
                               </>
                             ) : (
                               <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
-                                Tam:{" "}
+                                T:{" "}
                                 {item.selectedSizes?.standard ||
                                   item.size_standard ||
-                                  "Único"}
+                                  "U"}
                               </span>
                             )}
                           </div>
@@ -606,10 +606,10 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
                     ))}
                 </div>
               </div>
-              <div className="h-10"></div>
             </div>
 
-            <div className="p-6 border-t border-white/10 bg-[#0f172a] pb-8">
+            {/* --- RODAPÉ (Valor Total e Botão Ajuda) --- */}
+            <div className="p-6 border-t border-white/10 bg-[#0f172a] shrink-0 pb-8 sm:pb-6 rounded-b-[2rem] sm:rounded-b-3xl">
               <div className="flex justify-between items-center mb-4">
                 <p className="text-sm text-white/50">Valor Total</p>
                 <p className="text-2xl font-bold text-primary">
@@ -618,7 +618,7 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
               </div>
               <button
                 onClick={() => openSupport(selectedOrder)}
-                className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all border border-white/10 flex items-center justify-center gap-2"
+                className="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-all border border-white/10 flex items-center justify-center gap-2 active:scale-95"
               >
                 <HelpCircle size={18} className="text-white/60" />
                 Ajuda com este pedido
