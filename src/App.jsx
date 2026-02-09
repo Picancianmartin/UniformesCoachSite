@@ -30,7 +30,7 @@ export default function App() {
 
       // 2. Verifica se existe usuário E se o email é o do admin
       // (Ou você pode verificar session.user.user_metadata.role === 'admin')
-      const isUserAdmin = session?.user?.email === "admin@loja.com"; // Exemplo simples
+      const isUserAdmin = session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL; 
 
       setIsAdmin(isUserAdmin);
     };
@@ -40,7 +40,7 @@ export default function App() {
     // 3. Opcional: Escutar mudanças (login/logout) em tempo real
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        const isUserAdmin = session?.user?.email === "admin@loja.com";
+        const isUserAdmin = session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL;
         setIsAdmin(isUserAdmin);
       },
     );

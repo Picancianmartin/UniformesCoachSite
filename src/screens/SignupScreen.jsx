@@ -346,7 +346,7 @@ const SignupScreen = ({ onNavigate, onLogin, user, cartLength }) => {
                 <input
                   type="email"
                   className={getInputClasses(errors.email, true)}
-                  placeholder="admin@loja.com"
+                  placeholder="email@loja.com"
                   value={adminData.email}
                   onChange={(e) => {
                     setAdminData({ ...adminData, email: e.target.value });
