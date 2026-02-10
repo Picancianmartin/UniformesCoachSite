@@ -12,21 +12,19 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
   const [sizeBottom, setSizeBottom] = useState(null);
   const [sizeStandard, setSizeStandard] = useState(null);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
-  
-  // Estado da imagem ativa
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const scrollTimeout = useRef(null);
+
+  // Refs para controle de scroll otimizado
   const scrollRef = useRef(null);
+  const scrollTimeout = useRef(null);
 
   const ALL_SIZES = ["PP", "P", "M", "G", "GG", "XG", "G1", "G2", "G3"];
 
-  // --- LÓGICA ULTRA-LEVE DE SCROLL ---
-  // Só atualiza o estado quando o scroll PARAR (Debounce)
+  // --- LÓGICA OTIMIZADA DE SCROLL (Para não travar) ---
   const handleScroll = () => {
     if (scrollTimeout.current) {
       clearTimeout(scrollTimeout.current);
     }
-
     scrollTimeout.current = setTimeout(() => {
       if (scrollRef.current) {
         const scrollLeft = scrollRef.current.scrollLeft;
@@ -34,10 +32,10 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
         const index = Math.round(scrollLeft / width);
         setActiveImageIndex(index);
       }
-    }, 100); // Espera 100ms após parar de mexer para calcular
+    }, 50);
   };
 
-  // --- DADOS ---
+  // --- LÓGICA DE DADOS ---
   const getAvailableSizes = (type) => {
     const isPE = product.pronta_entrega || product.is_pronta_entrega || product.is_ready;
     if (!isPE) return ALL_SIZES;
@@ -66,16 +64,16 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
     onAddToCart({ ...product, isKit, selectedSizes });
   };
 
-  // Estilo simples para botões (sem sombras pesadas)
+  // Helper de Estilo Original
   const getSizeButtonStyle = (isSelected, isAvailable) => `
-    min-w-[3.5rem] h-12 rounded-xl font-bold text-sm flex items-center justify-center 
-    border transition-colors duration-200
+    min-w-[3rem] h-12 px-2 rounded-xl font-bold text-sm flex items-center justify-center 
+    transition-all duration-200 border-2
     ${
-      !isAvailable
-        ? "border-white/5 text-white/10 bg-white/5 cursor-not-allowed line-through"
+      !isAvailable 
+        ? "border-white/5 text-white/10 bg-white/5 cursor-not-allowed line-through opacity-50"
         : isSelected
-        ? "border-primary bg-primary text-white"
-        : "border-white/10 text-white/60 active:bg-white/10"
+          ? "border-primary text-primary shadow-[0_0_15px_rgba(0,123,186,0.4)] bg-primary/5 scale-105"
+          : "border-white/10 text-white/40 hover:border-white/30 hover:text-white bg-transparent"
     }
   `;
 
@@ -85,18 +83,10 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
   const isAvailable = (size, options) => options.includes(size);
 
   return (
-    <div className="fixed inset-0 z-50 bg-navy font-outfit text-white overflow-y-auto no-scrollbar">
+    <div className="min-h-screen bg-navy font-outfit text-white pb-24 relative">
       
-      {/* HEADER SIMPLES */}
-      <div className="fixed top-0 left-0 w-full z-40 px-6 py-4 flex justify-between items-center pointer-events-none">
-        <button onClick={() => onNavigate("catalog")} className="w-10 h-10 bg-navy/90 border border-white/10 rounded-full flex items-center justify-center text-white pointer-events-auto">
-          <ArrowLeft size={20} />
-        </button>
-        
-      </div>
-
-      {/* ÁREA DA IMAGEM */}
-      <div className="relative h-[55vh] w-full bg-navy">
+      {/* --- HERO SECTION (IMAGEM ORIGINAL) --- */}
+      <div className="relative h-[55vh] w-full bg-navy-light group">
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -104,13 +94,18 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
         >
           {productImages.length > 0 ? (
             productImages.map((img, index) => (
-              <div key={index} className="w-full h-full flex-shrink-0 snap-center">
+              <div
+                key={index}
+                className="w-full h-full flex-shrink-0 snap-center relative"
+              >
                 <img
                   src={img}
-                  alt="Produto"
+                  alt={`${product.name} ${index}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
+                {/* Gradiente original */}
+                <div className="absolute inset-0 bg-gradient-to-t from-navy via-transparent to-transparent opacity-90" />
               </div>
             ))
           ) : (
@@ -120,59 +115,58 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
           )}
         </div>
 
-        {/* INDICADORES SIMPLES */}
+        {/* Botão Voltar Original */}
+        <button
+          onClick={() => onNavigate("catalog")}
+          className="absolute top-6 left-6 w-10 h-10 bg-black/20 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all z-20"
+        >
+          <ArrowLeft size={20} />
+        </button>
+
+        {/* Indicadores */}
         {productImages.length > 1 && (
-          <div className="absolute bottom-8 left-0 w-full flex justify-center gap-2 z-20 pointer-events-none">
+          <div className="absolute bottom-2 left-0 w-full flex justify-center gap-2 z-20">
             {productImages.map((_, i) => (
               <div
                 key={i}
-                className={`rounded-full h-1.5 transition-all duration-300 ${
-                  i === activeImageIndex ? "w-6 bg-white" : "w-1.5 bg-white/40"
-                }`}
+                className={`transition-all duration-300 rounded-full h-1.5 shadow-sm ${i === activeImageIndex ? "w-6 bg-primary" : "w-1.5 bg-white/30"}`}
               />
             ))}
           </div>
         )}
-      </div>
 
-      {/* CONTEÚDO (SHEET) */}
-      <div className="relative -mt-6 bg-navy rounded-t-[2.5rem] border-t border-white/10 px-6 pt-8 pb-40 z-10 min-h-[50vh]">
-        <div className="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6" />
-
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2 mb-3">
-            <span className="bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">
+        {/* Info Produto (Título e Preço SOBRE a imagem, como no original) */}
+        <div className="absolute -bottom-px left-0 w-full p-6 z-10 pointer-events-none">
+          <div className="flex items-center gap-2 mb-2 pointer-events-auto">
+            <span className="bg-primary/20 border border-primary/30 text-primary-light text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider backdrop-blur-md">
               {product.collection || "Coleção Oficial"}
             </span>
             {(product.pronta_entrega || product.is_ready) && (
-              <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
+              <span className="bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider backdrop-blur-md flex items-center gap-1">
                 <ShieldCheck size={10} /> Pronta Entrega
               </span>
             )}
           </div>
-
-          <div className="flex justify-between items-start gap-4">
-            <h1 className="text-2xl font-bold text-white leading-tight">{product.name}</h1>
-            <div className="shrink-0 pt-1">
-              <p className="text-2xl font-bold text-primary whitespace-nowrap">
-                R$ {Number(product.price).toFixed(0)}
-              </p>
-            </div>
-          </div>
+          <h1 className="text-3xl font-extrabold text-white leading-tight mb-1 drop-shadow-lg">
+            {product.name}
+          </h1>
+          <p className="text-2xl font-bold text-primary drop-shadow-md">
+            R$ {Number(product.price).toFixed(2)}
+          </p>
         </div>
+      </div>
 
-        <div className="h-px w-full bg-white/5 mb-8" />
-
-        {/* SELETORES */}
-        <div className="space-y-8">
+      <div className="px-6 pt-10 space-y-8">
+        {/* --- SELETORES DE TAMANHO --- */}
+        <div className="space-y-6">
           {isKit ? (
+            /* --- KIT --- */
             <>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-semibold text-white/90">Parte de Cima</h3>
-                  <button onClick={() => setShowSizeGuide(true)} className="text-[10px] text-white/50 underline flex items-center gap-1 p-2 -mr-2">
-                    <Ruler size={12} /> Medidas
-                  </button>
+                  <h3 className="text-sm font-bold text-white/80 uppercase tracking-wide">
+                    Parte de Cima
+                  </h3>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
                   {ALL_SIZES.map((s) => {
@@ -193,12 +187,14 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-semibold text-white/90">Parte de Baixo</h3>
+                  <h3 className="text-sm font-bold text-white/80 uppercase tracking-wide">
+                    Parte de Baixo
+                  </h3>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
                   {ALL_SIZES.map((s) => {
-                     const avail = isAvailable(s, optionsBottom);
-                     return (
+                    const avail = isAvailable(s, optionsBottom);
+                    return (
                       <button
                         key={s}
                         disabled={!avail && (product.pronta_entrega || product.is_ready)}
@@ -213,17 +209,17 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
               </div>
             </>
           ) : (
+            /* --- PEÇA ÚNICA --- */
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <h3 className="text-sm font-semibold text-white/90">Selecione o Tamanho</h3>
-                <button onClick={() => setShowSizeGuide(true)} className="text-[10px] text-white/50 underline flex items-center gap-1 p-2 -mr-2">
-                  <Ruler size={12} /> Guia de medidas
-                </button>
+                <h3 className="text-sm font-bold text-white/80 uppercase tracking-wide">
+                  Tamanho
+                </h3>
               </div>
               <div className="flex gap-3 flex-wrap">
                 {ALL_SIZES.map((s) => {
-                   const avail = isAvailable(s, optionsStandard);
-                   return (
+                  const avail = isAvailable(s, optionsStandard);
+                  return (
                     <button
                       key={s}
                       disabled={!avail && (product.pronta_entrega || product.is_ready)}
@@ -237,27 +233,34 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
               </div>
             </div>
           )}
+
+          {/* GUIA DE MEDIDAS */}
+          <button
+            onClick={() => setShowSizeGuide(true)}
+            className="text-[10px] text-white/40 underline flex items-center gap-1 hover:text-white transition-colors"
+          >
+            <Ruler size={12} /> Guia de medidas
+          </button>
         </div>
       </div>
 
-      {/* FOOTER */}
-      <div className="fixed bottom-0 left-0 w-full p-6 bg-navy border-t border-white/10 z-50">
-        <div className="max-w-md mx-auto flex items-center gap-6">
-          <div className="flex flex-col shrink-0">
-             <span className="text-xs text-white/50 mb-0.5 uppercase tracking-wide">Total</span>
-             <span className="text-2xl font-bold text-white">R$ {Number(product.price).toFixed(0)}</span>
-          </div>
-
+      {/* --- FOOTER FIXO --- */}
+      <div className="fixed bottom-0 left-0 w-full p-6 bg-navy/95 backdrop-blur-xl border-t border-white/10 z-30 safe-area-bottom">
+        <div className="max-w-[428px] mx-auto">
           <button
             onClick={handleAdd}
             disabled={!canAdd}
             className={`
-              flex-1 h-14 bg-primary text-white rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-opacity
-              ${!canAdd && "opacity-50 cursor-not-allowed bg-white/10 text-white/30"}
-            `}
+                w-full h-14 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all shadow-lg
+                ${
+                  canAdd
+                    ? "bg-primary hover:brightness-110 text-white shadow-primary/25 active:scale-95"
+                    : "bg-white/5 text-white/20 cursor-not-allowed"
+                }
+              `}
           >
             <ShoppingBag size={20} />
-            {canAdd ? "Adicionar" : "Selecione"}
+            {canAdd ? "Adicionar à Sacola" : "Selecione os tamanhos"}
           </button>
         </div>
       </div>
