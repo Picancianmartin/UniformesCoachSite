@@ -7,6 +7,7 @@ import {
   Plus,
   Minus,
   Package,
+  AlertCircle,
 } from "lucide-react";
 import Header from "../components/Header";
 import logoAzul from "../assets/logodavidD.png"; // Imagem do "N" azul para o logo central
@@ -45,11 +46,10 @@ const CartScreen = ({
       <Header
         title="Minha Sacola"
         logoSrc={logoAzul} // Usa a imagem do "N" azul
-                logoSize = "h-12 w-auto ml-1.5" // Tamanho maior para o logo no centro
-        showBack={false}
+        logoSize="h-12 w-auto ml-1.5" // Tamanho maior para o logo no centro
+        showBack={true}
         onBack={() => onNavigate("catalog")}
       />
-      
 
       {/* Container com Scroll */}
       <div className="flex-1 pt-24 px-5 pb-48 overflow-y-auto animate-fade-in no-scrollbar">
@@ -72,34 +72,53 @@ const CartScreen = ({
         ) : (
           <div className="space-y-4">
             {cartItems.map((item) => {
-              // Verifica se atingiu o limite de estoque (apenas para Pronta Entrega)
+              // -----------------------------------------------------------
+              // 1. INÍCIO DA EDIÇÃO: LÓGICA DE ESTOQUE REAL
+              // -----------------------------------------------------------
+              let availableStock = 9999; // Infinito se for Encomenda
+              const isProntaEntrega = item.pronta_entrega || item.is_ready;
+
+              if (isProntaEntrega && item.stock) {
+                if (item.isKit) {
+                  // Se for Kit, pega o menor estoque entre Top e Bottom
+                  const sizeTop = item.selectedSizes?.top;
+                  const sizeBottom = item.selectedSizes?.bottom;
+                  const stockTop = item.stock.top?.[sizeTop] || 0;
+                  const stockBottom = item.stock.bottom?.[sizeBottom] || 0;
+
+                  availableStock = Math.min(stockTop, stockBottom);
+                } else {
+                  // Se for Peça Única
+                  const size = item.selectedSizes?.standard;
+                  availableStock = item.stock.standard?.[size] || 0;
+                }
+              }
+
+              // Bloqueia se atingiu o limite
               const isMaxStock =
-                item.is_ready &&
-                item.stock_quantity !== null &&
-                item.quantity >= item.stock_quantity;
+                isProntaEntrega && item.quantity >= availableStock;
+              // -----------------------------------------------------------
+              // FIM DA LÓGICA
+              // -----------------------------------------------------------
 
               return (
                 <div
                   key={item.cartId}
                   className="bg-navy-light p-3 rounded-2xl flex gap-4 items-center relative border border-white/5 shadow-lg"
                 >
-                  {/* Imagem com Fallback */}
+                  {/* ... (CÓDIGO DA IMAGEM E INFO MANTÉM IGUAL) ... */}
+
+                  {/* Imagem */}
                   <div className="w-20 h-24 bg-navy rounded-xl overflow-hidden flex-shrink-0 relative border border-white/5">
                     <img
                       src={item.image}
                       className="w-full h-full object-cover"
                       alt={item.name}
-                      onError={(e) => (e.target.style.display = "none")} // Esconde se quebrar
+                      onError={(e) => (e.target.style.display = "none")}
                     />
-                    {/* Badge de Kit ou Pronta Entrega */}
                     {item.isKit && (
                       <div className="absolute bottom-0 left-0 w-full bg-black/60 backdrop-blur-sm text-[8px] font-bold text-center text-white uppercase py-1">
                         KIT
-                      </div>
-                    )}
-                    {!item.isKit && !item.image && (
-                      <div className="w-full h-full flex items-center justify-center text-white/20">
-                        <ShoppingBag size={20} />
                       </div>
                     )}
                   </div>
@@ -118,7 +137,6 @@ const CartScreen = ({
                       </button>
                     </div>
 
-                    {/* Tamanhos */}
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {item.isKit ? (
                         <>
@@ -145,30 +163,26 @@ const CartScreen = ({
                       )}
                     </div>
 
-                    {/* Preço e Qtd */}
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-primary text-base">
                         {formatMoney(item.price)}
                       </span>
 
                       <div className="flex flex-col items-end">
-                        <div className="flex items-center bg-navy rounded-lg border border-white/10 h-8 shadow-inner">
+                        <div
+                          className={`flex items-center bg-navy rounded-lg border h-8 shadow-inner transition-colors ${isMaxStock ? "border-red-500/30" : "border-white/10"}`}
+                        >
                           <button
                             onClick={() => {
-                              // LÓGICA INTELIGENTE:
                               if (item.quantity === 1) {
-                                onRemoveItem(item.cartId); // Se tiver 1, CLICA E EXCLUI
+                                onRemoveItem(item.cartId);
                               } else {
-                                onUpdateQty(item.cartId, -1); // Se tiver mais, apenas diminui
+                                onUpdateQty(item.cartId, -1);
                               }
                             }}
                             className={`w-8 h-full flex items-center justify-center transition-colors rounded-l-lg
-    ${
-      item.quantity === 1
-        ? "text-red-400 hover:bg-red-500/10 hover:text-red-500" // Estilo Vermelho (Lixo)
-        : "text-white/60 hover:text-white active:bg-white/5" // Estilo Normal (Menos)
-    }
-  `}
+                              ${item.quantity === 1 ? "text-red-400 hover:text-red-500" : "text-white/60 hover:text-white"}
+                            `}
                           >
                             {item.quantity === 1 ? (
                               <Trash2 size={14} />
@@ -181,6 +195,7 @@ const CartScreen = ({
                             {item.quantity}
                           </span>
 
+                          {/* 2. EDIÇÃO: BOTÃO PLUS COM BLOQUEIO */}
                           <button
                             onClick={() =>
                               !isMaxStock && onUpdateQty(item.cartId, 1)
@@ -188,7 +203,7 @@ const CartScreen = ({
                             disabled={isMaxStock}
                             className={`w-8 h-full flex items-center justify-center transition-colors rounded-r-lg ${
                               isMaxStock
-                                ? "text-white/10 cursor-not-allowed"
+                                ? "text-white/10 cursor-not-allowed bg-white/5"
                                 : "text-white/60 hover:text-primary active:bg-white/5"
                             }`}
                           >
@@ -196,10 +211,10 @@ const CartScreen = ({
                           </button>
                         </div>
 
-                        {/* Aviso de Estoque Cheio */}
+                        {/* 3. EDIÇÃO: MENSAGEM DE AVISO */}
                         {isMaxStock && (
-                          <span className="text-[9px] text-accent mt-1 font-bold">
-                            Máx. atingido
+                          <span className="text-[9px] text-red-400 mt-1 font-bold flex items-center gap-1">
+                            <AlertCircle size={8} /> Max: {availableStock}
                           </span>
                         )}
                       </div>

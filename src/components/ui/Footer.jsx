@@ -6,13 +6,13 @@ export default function Footer({
   portfolioUrl = "https://pietramartin.dev",
   creditName = "Pietra Martin",
   showCredit = true,
-  className = "",
+  className = " ",
 }) {
   const year = new Date().getFullYear();
 
   return (
     <footer
-      className={`w-full border-t border-white/10 bg-navy/70 backdrop-blur-xl ${className}`}
+      className={`w-full  border-t border-white/10 bg-navy/70 backdrop-blur-xl ${className}`}
     >
       <div className="max-w-[428px] mx-auto px-5 py-5">
         <div className="flex items-center justify-between gap-3">

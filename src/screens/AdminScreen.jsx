@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../services/supabase";
+import CollectionSelector from "../components/CollectionSelector";
 import {
   Package,
   LogOut,
@@ -130,6 +131,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
     image: "",
     images_text: "",
     category: "camisetas",
+    collection: "",
     description: "",
     is_pronta_entrega: false,
     stock: {},
@@ -171,7 +173,9 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
         product.images && Array.isArray(product.images)
           ? product.images.join("\n")
           : "",
+          
       category: product.category || "camisetas",
+      collection: product.collection || "",
       description: product.description || "",
       is_pronta_entrega: product.pronta_entrega || false,
       stock: product.stock || {},
@@ -187,6 +191,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
       price: "",
       image: "",
       category: "camisetas",
+      collection: "",
       description: "",
       is_pronta_entrega: false,
       stock: {},
@@ -211,6 +216,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
       image: formData.image,
       images: galleryArray,
       category: formData.category,
+      collection: formData.collection,
       description: formData.description,
       pronta_entrega: formData.is_pronta_entrega,
       stock: formData.stock,
@@ -822,6 +828,14 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                     <option value="camisetas">Peça Única</option>
                     <option value="kits">Kits/Conjuntos</option>
                   </select>
+                </div>
+
+                {/* --- SELETOR DE COLEÇÃO --- */}
+                <div className="bg-black/20 border border-white/10 rounded-xl p-4">
+                   <CollectionSelector
+                      value={formData.collection}
+                      onChange={(val) => setFormData({ ...formData, collection: val })}
+                   />
                 </div>
 
                 <div className="relative group">
