@@ -28,11 +28,10 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
   );
 
   // --- CONFIGURAÇÃO DO SEU PIX ---
-  const PIX_KEY = "pietra_cmartin@hotmail.com";
-  const MERCHANT_NAME = "Coach Store";
-  const MERCHANT_CITY = "Sorocaba";
-  const ADMIN_PHONE = "551591762066";
-
+  const PIX_KEY = import.meta.env.VITE_PIX_KEY;
+  const MERCHANT_NAME = import.meta.env.VITE_MERCHANT_NAME;
+  const MERCHANT_CITY = import.meta.env.VITE_MERCHANT_CITY;
+  const ADMIN_PHONE = import.meta.env.VITE_ADMIN_PHONE; // Para o link do WhatsApp (sem símbolos)
   // --- FUNÇÃO FINAL: ATUALIZA STATUS E MOSTRA TOAST ---
   const handleConfirmAndExit = async () => {
     const hasCustomItems = cartItems.some(
@@ -213,7 +212,7 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
       throw error;
     }
   };
-  
+
   // --- 3. GERAR PIX (MANTIDA) ---
   const generatePixPayload = (key, name, city, amount, txid = "***") => {
     const cleanStr = (str) =>

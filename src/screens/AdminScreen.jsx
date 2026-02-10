@@ -32,6 +32,40 @@ import {
 const AdminScreen = ({ onNavigate, onLogout }) => {
   const [isAuthorized, setIsAuthorized] = useState(false);
 
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = async (event) => {
+    try {
+      setIsUploading(true);
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Gerar um nome único para o arquivo para evitar sobrescrita
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      // 1. Upload para o Storage
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Pegar a URL pública
+      const { data } = supabase.storage
+        .from("product-images")
+        .getPublicUrl(filePath);
+
+      // 3. Atualizar o formulário com a nova URL
+      setFormData({ ...formData, image: data.publicUrl });
+    } catch (error) {
+      alert("Erro ao subir imagem: " + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   useEffect(() => {
     const checkSession = async () => {
       // 1. Verifica se existe uma sessão real no Supabase
@@ -774,14 +808,74 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                     size={16}
                     className="absolute left-3 top-3.5 text-white/30 group-focus-within:text-primary transition-colors"
                   />
-                  <input
-                    className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-3 text-white text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
-                    placeholder="URL da Imagem (opcional)"
-                    value={formData.image}
-                    onChange={(e) =>
-                      setFormData({ ...formData, image: e.target.value })
-                    }
-                  />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 px-1">
+                      <ImageIcon size={12} className="text-white/40" />
+                      <span className="text-[10px] text-white/40 uppercase font-bold">
+                        Imagem do Produto
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-4">
+                      {/* Preview e Botão de Upload */}
+                      <div className="flex gap-4 items-center">
+                        <div className="w-20 h-20 bg-black/40 rounded-2xl border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                          {formData.image ? (
+                            <img
+                              src={formData.image}
+                              className="w-full h-full object-cover"
+                              alt="Preview"
+                            />
+                          ) : (
+                            <ImageIcon size={24} className="text-white/10" />
+                          )}
+                        </div>
+
+                        <label className="flex-1">
+                          <div
+                            className={`w-full h-20 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all ${isUploading ? "border-primary/20 bg-primary/5" : "border-white/10 hover:border-primary/40 hover:bg-white/5"}`}
+                          >
+                            {isUploading ? (
+                              <Loader
+                                className="animate-spin text-primary"
+                                size={20}
+                              />
+                            ) : (
+                              <>
+                                <Plus size={20} className="text-primary" />
+                                <span className="text-xs font-bold text-white/60">
+                                  Fazer Upload
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                            disabled={isUploading}
+                          />
+                        </label>
+                      </div>
+
+                      {/* Campo de URL Manual (Mantido para flexibilidade) */}
+                      <div className="relative group">
+                        <ImageIcon
+                          size={14}
+                          className="absolute left-3 top-3 text-white/30"
+                        />
+                        <input
+                          className="w-full bg-black/20 border border-white/5 rounded-xl py-2 pl-9 pr-3 text-[10px] text-white/50 outline-none focus:border-primary/30"
+                          placeholder="Ou cole a URL manualmente..."
+                          value={formData.image}
+                          onChange={(e) =>
+                            setFormData({ ...formData, image: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 {/* --- NOVO CAMPO: GALERIA DE FOTOS --- */}
                 <div className="relative group">
