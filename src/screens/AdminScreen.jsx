@@ -41,12 +41,13 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
       if (files.length === 0) return;
 
       const uploadPromises = files.map(async (file) => {
+        // Usar timestamp + random para garantir que o nome seja único
         const fileExt = file.name.split(".").pop();
-        const fileName = `${Math.random()}.${fileExt}`;
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
         const filePath = `products/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from("product-images") // Nome do seu bucket
+          .from("product-images")
           .upload(filePath, file);
 
         if (uploadError) throw uploadError;
@@ -60,30 +61,29 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
 
       const uploadedUrls = await Promise.all(uploadPromises);
 
-      // Se a imagem principal estiver vazia, define a primeira como principal
-      let newMainImage = formData.image;
-      if (!newMainImage && uploadedUrls.length > 0) {
-        newMainImage = uploadedUrls[0];
-      }
+      setFormData((prev) => {
+        // Se não tem capa ainda, a primeira do upload vira capa
+        const newMainImage = prev.image || uploadedUrls[0];
 
-      // Adiciona as novas URLs ao campo de texto da galeria, separadas por linha
-      const currentGallery = formData.images_text
-        ? formData.images_text + "\n"
-        : "";
-      const newGalleryText = currentGallery + uploadedUrls.join("\n");
+        // Mantém as URLs atuais e adiciona as novas
+        const currentGallery = prev.images_text
+          ? prev.images_text.split("\n")
+          : [];
+        const updatedGallery = [...currentGallery, ...uploadedUrls]
+          .filter(Boolean)
+          .join("\n");
 
-      setFormData({
-        ...formData,
-        image: newMainImage,
-        images_text: newGalleryText,
+        return {
+          ...prev,
+          image: newMainImage,
+          images_text: updatedGallery,
+        };
       });
-
-      alert(`${uploadedUrls.length} fotos adicionadas com sucesso!`);
     } catch (error) {
-      console.error(error);
-      alert("Erro ao subir imagens: " + error.message);
+      alert("Erro no upload: " + error.message);
     } finally {
       setIsUploading(false);
+      event.target.value = ""; // Reseta o input de arquivo
     }
   };
 
@@ -886,37 +886,92 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                           </label>
                         </div>
 
-                        {/* Preview da Galeria (Miniaturas das URLs em images_text) */}
+                        
+                        {/* Preview da Galeria (Miniaturas com seleção de Capa) */}
                         {formData.images_text && (
-                          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                            {formData.images_text
-                              .split("\n")
-                              .map((url, index) => (
-                                <div
-                                  key={index}
-                                  className="relative w-12 h-12 rounded-lg border border-white/10 overflow-hidden shrink-0"
-                                >
-                                  <img
-                                    src={url}
-                                    className="w-full h-full object-cover opacity-60"
-                                  />
-                                  <button
-                                    onClick={() => {
-                                      const gallery = formData.images_text
-                                        .split("\n")
-                                        .filter((_, i) => i !== index)
-                                        .join("\n");
-                                      setFormData({
-                                        ...formData,
-                                        images_text: gallery,
-                                      });
-                                    }}
-                                    className="absolute inset-0 flex items-center justify-center bg-red-500/40 opacity-0 hover:opacity-100 transition-opacity"
-                                  >
-                                    <Trash2 size={12} className="text-white" />
-                                  </button>
-                                </div>
-                              ))}
+                          <div className="space-y-2">
+                            <p className="text-[10px] text-white/40 uppercase font-bold px-1">
+                              Galeria (Clique na estrela para definir como capa)
+                            </p>
+                            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+                              {formData.images_text
+                                .split("\n")
+                                .filter(Boolean) // Remove linhas vazias
+                                .map((url, index) => {
+                                  const isCapa = formData.image === url;
+                                  return (
+                                    <div
+                                      key={index}
+                                      className={`relative w-24 h-24 rounded-2xl border-2 transition-all shrink-0 overflow-hidden ${
+                                        isCapa
+                                          ? "border-primary shadow-[0_0_15px_rgba(var(--color-primary),0.3)] opacity-100"
+                                          : "border-white/5 opacity-60 hover:opacity-100"
+                                      }`}
+                                    >
+                                      <img
+                                        src={url}
+                                        className="w-full h-full object-cover"
+                                        alt={`Preview ${index}`}
+                                      />
+
+                                      {/* BOTÃO PARA DEFINIR COMO CAPA */}
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setFormData({
+                                            ...formData,
+                                            image: url,
+                                          })
+                                        }
+                                        className={`absolute top-1 left-1 p-1.5 rounded-lg backdrop-blur-md transition-all ${
+                                          isCapa
+                                            ? "bg-primary text-white"
+                                            : "bg-black/40 text-white/40 hover:text-white"
+                                        }`}
+                                        title="Definir como capa"
+                                      >
+                                        <Tag
+                                          size={12}
+                                          fill={
+                                            isCapa ? "currentColor" : "none"
+                                          }
+                                        />
+                                      </button>
+
+                                      {/* BOTÃO PARA EXCLUIR */}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const galleryArray =
+                                            formData.images_text
+                                              .split("\n")
+                                              .filter((_, i) => i !== index);
+                                          const newGallery =
+                                            galleryArray.join("\n");
+                                          // Se deletar a que era capa, promove a primeira da lista ou limpa
+                                          const newCapa = isCapa
+                                            ? galleryArray[0] || ""
+                                            : formData.image;
+                                          setFormData({
+                                            ...formData,
+                                            images_text: newGallery,
+                                            image: newCapa,
+                                          });
+                                        }}
+                                        className="absolute top-1 right-1 p-1.5 rounded-lg bg-red-500/20 text-red-400 backdrop-blur-md hover:bg-red-500 transition-all hover:text-white"
+                                      >
+                                        <Trash2 size={12} />
+                                      </button>
+
+                                      {isCapa && (
+                                        <div className="absolute bottom-0 left-0 right-0 bg-primary text-[8px] font-bold text-center py-0.5 text-white uppercase">
+                                          Capa Atual
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                            </div>
                           </div>
                         )}
 
@@ -960,23 +1015,6 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                       </div>
                     </div>
                   </div>
-                </div>
-                {/* --- NOVO CAMPO: GALERIA DE FOTOS --- */}
-                <div className="relative group">
-                  <div className="flex items-center gap-2 mb-1 px-1">
-                    <Layers size={12} className="text-white/40" />
-                    <span className="text-[10px] text-white/40 uppercase font-bold">
-                      Galeria (Frente, Costas, Detalhes)
-                    </span>
-                  </div>
-                  <textarea
-                    className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-primary/50 min-h-[80px]"
-                    placeholder="Cole aqui as URLs das outras fotos (uma por linha ou separadas por vírgula)..."
-                    value={formData.images_text}
-                    onChange={(e) =>
-                      setFormData({ ...formData, images_text: e.target.value })
-                    }
-                  />
                 </div>
 
                 {/* Switch Pronta Entrega Melhorado */}
