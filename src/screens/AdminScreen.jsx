@@ -34,33 +34,54 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
 
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileUpload = async (event) => {
+  const handleMultipleUpload = async (event) => {
     try {
       setIsUploading(true);
-      const file = event.target.files[0];
-      if (!file) return;
+      const files = Array.from(event.target.files);
+      if (files.length === 0) return;
 
-      // Gerar um nome único para o arquivo para evitar sobrescrita
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `products/${fileName}`;
+      const uploadPromises = files.map(async (file) => {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `products/${fileName}`;
 
-      // 1. Upload para o Storage
-      const { error: uploadError } = await supabase.storage
-        .from("product-images")
-        .upload(filePath, file);
+        const { error: uploadError } = await supabase.storage
+          .from("product-images") // Nome do seu bucket
+          .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      // 2. Pegar a URL pública
-      const { data } = supabase.storage
-        .from("product-images")
-        .getPublicUrl(filePath);
+        const { data } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(filePath);
 
-      // 3. Atualizar o formulário com a nova URL
-      setFormData({ ...formData, image: data.publicUrl });
+        return data.publicUrl;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+
+      // Se a imagem principal estiver vazia, define a primeira como principal
+      let newMainImage = formData.image;
+      if (!newMainImage && uploadedUrls.length > 0) {
+        newMainImage = uploadedUrls[0];
+      }
+
+      // Adiciona as novas URLs ao campo de texto da galeria, separadas por linha
+      const currentGallery = formData.images_text
+        ? formData.images_text + "\n"
+        : "";
+      const newGalleryText = currentGallery + uploadedUrls.join("\n");
+
+      setFormData({
+        ...formData,
+        image: newMainImage,
+        images_text: newGalleryText,
+      });
+
+      alert(`${uploadedUrls.length} fotos adicionadas com sucesso!`);
     } catch (error) {
-      alert("Erro ao subir imagem: " + error.message);
+      console.error(error);
+      alert("Erro ao subir imagens: " + error.message);
     } finally {
       setIsUploading(false);
     }
@@ -804,7 +825,6 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                 </div>
 
                 <div className="relative group">
-                  
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 px-1">
                       <ImageIcon size={12} className="text-white/40" />
@@ -813,63 +833,130 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                       </span>
                     </div>
 
-                    <div className="flex flex-col gap-4">
-                      {/* Preview e Botão de Upload */}
-                      <div className="flex gap-4 items-center">
-                        <div className="w-20 h-20 bg-black/40 rounded-2xl border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
-                          {formData.image ? (
-                            <img
-                              src={formData.image}
-                              className="w-full h-full object-cover"
-                              alt="Preview"
-                            />
-                          ) : (
-                            <ImageIcon size={24} className="text-white/10" />
-                          )}
-                        </div>
-
-                        <label className="flex-1">
-                          <div
-                            className={`w-full h-20 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all ${isUploading ? "border-primary/20 bg-primary/5" : "border-white/10 hover:border-primary/40 hover:bg-white/5"}`}
-                          >
-                            {isUploading ? (
-                              <Loader
-                                className="animate-spin text-primary"
-                                size={20}
+                    <div className="space-y-4">
+                      <div className="flex flex-col gap-4">
+                        {/* Preview e Botão de Upload */}
+                        <div className="flex gap-4 items-center">
+                          <div className="group relative w-20 h-20 bg-black/40 rounded-2xl border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                            {formData.image ? (
+                              <img
+                                src={formData.image}
+                                className="w-full h-full object-cover"
+                                alt="Preview Capa"
                               />
                             ) : (
-                              <>
-                                <Plus size={20} className="text-primary" />
-                                <span className="text-xs font-bold text-white/60">
-                                  Fazer Upload
-                                </span>
-                              </>
+                              <ImageIcon size={24} className="text-white/10" />
                             )}
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span className="text-[8px] font-bold uppercase text-white">
+                                Capa
+                              </span>
+                            </div>
                           </div>
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleFileUpload}
-                            disabled={isUploading}
-                          />
-                        </label>
-                      </div>
 
-                      {/* Campo de URL Manual (Mantido para flexibilidade) */}
-                      <div className="relative group">
-                        <ImageIcon
-                          size={14}
-                          className="absolute left-3 top-3 text-white/30"
-                        />
-                        <input
-                          className="w-full bg-black/20 border border-white/5 rounded-xl py-2 pl-9 pr-3 text-[10px] text-white/50 outline-none focus:border-primary/30"
-                          placeholder="Ou cole a URL manualmente..."
-                          value={formData.image}
-                          onChange={(e) =>
-                            setFormData({ ...formData, image: e.target.value })
-                          }
-                        />
+                          <label className="flex-1">
+                            <div
+                              className={`w-full h-20 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all ${isUploading ? "border-primary/20 bg-primary/5" : "border-white/10 hover:border-primary/40 hover:bg-white/5"}`}
+                            >
+                              {isUploading ? (
+                                <Loader
+                                  className="animate-spin text-primary"
+                                  size={20}
+                                />
+                              ) : (
+                                <>
+                                  <Plus size={20} className="text-primary" />
+                                  <span className="text-xs font-bold text-white/60">
+                                    Adicionar Fotos
+                                  </span>
+                                  <span className="text-[9px] text-white/30">
+                                    (Várias permitidas)
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              multiple // ATRIBUTO CHAVE
+                              onChange={handleMultipleUpload}
+                              disabled={isUploading}
+                            />
+                          </label>
+                        </div>
+
+                        {/* Preview da Galeria (Miniaturas das URLs em images_text) */}
+                        {formData.images_text && (
+                          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                            {formData.images_text
+                              .split("\n")
+                              .map((url, index) => (
+                                <div
+                                  key={index}
+                                  className="relative w-12 h-12 rounded-lg border border-white/10 overflow-hidden shrink-0"
+                                >
+                                  <img
+                                    src={url}
+                                    className="w-full h-full object-cover opacity-60"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const gallery = formData.images_text
+                                        .split("\n")
+                                        .filter((_, i) => i !== index)
+                                        .join("\n");
+                                      setFormData({
+                                        ...formData,
+                                        images_text: gallery,
+                                      });
+                                    }}
+                                    className="absolute inset-0 flex items-center justify-center bg-red-500/40 opacity-0 hover:opacity-100 transition-opacity"
+                                  >
+                                    <Trash2 size={12} className="text-white" />
+                                  </button>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+
+                        {/* Campo de URL da Capa */}
+                        <div className="relative group">
+                          <ImageIcon
+                            size={14}
+                            className="absolute left-3 top-3 text-white/30"
+                          />
+                          <input
+                            className="w-full bg-black/20 border border-white/5 rounded-xl py-2 pl-9 pr-3 text-[10px] text-white/50 outline-none focus:border-primary/30"
+                            placeholder="URL da Capa..."
+                            value={formData.image}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                image: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        {/* Campo de Texto da Galeria */}
+                        <div className="relative group">
+                          <Layers
+                            size={14}
+                            className="absolute left-3 top-3 text-white/30"
+                          />
+                          <textarea
+                            className="w-full bg-black/20 border border-white/5 rounded-xl py-2 pl-9 pr-3 text-[10px] text-white/50 outline-none focus:border-primary/30 min-h-[60px]"
+                            placeholder="URLs da Galeria (uma por linha)..."
+                            value={formData.images_text}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                images_text: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

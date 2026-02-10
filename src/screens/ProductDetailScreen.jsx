@@ -39,12 +39,26 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
   };
 
   // --- LÓGICA DE IMAGENS ---
-  const productImages =
-    product.images && product.images.length > 0
-      ? product.images
-      : product.image
-        ? [product.image]
-        : []; // Fallback seguro
+  const productImages = (() => {
+    // 1. Se já for um array em 'images', usamos ele
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      return product.images;
+    }
+    // 2. Se 'images' for uma string (separada por vírgulas ou quebras de linha do banco)
+    if (
+      typeof product.images === "string" &&
+      product.images.trim().length > 0
+    ) {
+      return product.images.split(/[,\n]/).map((img) => img.trim());
+    }
+    // 3. Fallback para a imagem principal 'image'
+    if (product.image) {
+      return [product.image];
+    }
+    // 4. Vazio se nada existir
+    return [];
+  })();
+
 
   const handleScroll = () => {
     if (scrollRef.current) {
