@@ -804,10 +804,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                 </div>
 
                 <div className="relative group">
-                  <ImageIcon
-                    size={16}
-                    className="absolute left-3 top-3.5 text-white/30 group-focus-within:text-primary transition-colors"
-                  />
+                  
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 px-1">
                       <ImageIcon size={12} className="text-white/40" />
