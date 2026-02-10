@@ -213,86 +213,139 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
     }
   };
 
-  // --- 3. GERAR PIX (MANTIDA) ---
-  const generatePixPayload = (key, name, city, amount, txid = "***") => {
-    const cleanStr = (str) =>
-      str
-        ? str
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .trim()
-        : "";
-    const cleanKey = (str) => (str ? str.replace(/[^\w@.-]/g, "") : "");
-
-    const pKey = cleanKey(key);
-    const pName = cleanStr(name).substring(0, 25).toUpperCase();
-    const pCity = cleanStr(city).substring(0, 15).toUpperCase();
-    const pTxid = cleanStr(txid)
-      .substring(0, 25)
-      .replace(/[^a-zA-Z0-9]/g, "");
-    const pAmount = amount.toFixed(2);
-
-    const format = (id, value) => {
-      const len = value.length.toString().padStart(2, "0");
-      return `${id}${len}${value}`;
-    };
-
-    let payload =
-      format("00", "01") +
-      format("26", format("00", "br.gov.bcb.pix") + format("01", pKey)) +
-      format("52", "0000") +
-      format("53", "986") +
-      format("54", pAmount) +
-      format("58", "BR") +
-      format("59", pName) +
-      format("60", pCity) +
-      format("62", format("05", pTxid || "***")) +
-      "6304";
-
-    const polynomial = 0x1021;
-    let crc = 0xffff;
-
-    for (let i = 0; i < payload.length; i++) {
-      crc ^= payload.charCodeAt(i) << 8;
-      for (let j = 0; j < 8; j++) {
-        if ((crc & 0x8000) !== 0) {
-          crc = (crc << 1) ^ polynomial;
-        } else {
-          crc = crc << 1;
-        }
-      }
-    }
-
-    return payload + (crc & 0xffff).toString(16).toUpperCase().padStart(4, "0");
-  };
-
-  // --- 4. PAGAR PIX (MANTIDA) ---
   const handlePixPayment = async () => {
     setLoading(true);
+
     try {
+      // 1. BUSCA SEGURA NO BANCO OU ENV
+      const { data: adminData } = await supabase
+        .from("store_config")
+        .select("pix_key, phone")
+        .eq("id", 1)
+        .maybeSingle();
+
+      const rawKey =
+        adminData?.pix_key ||
+        adminData?.phone ||
+        import.meta.env.VITE_PIX_KEY ||
+        "";
+      const merchantName = import.meta.env.VITE_MERCHANT_NAME || "David D";
+      const merchantCity = import.meta.env.VITE_MERCHANT_CITY || "Sorocaba";
+
+      if (!rawKey) {
+        alert("Erro: Chave Pix não configurada.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. TRATAMENTO DA CHAVE PIX
+      let finalPixKey = rawKey.trim();
+      if (!finalPixKey.includes("@")) {
+        const cleanNumbers = finalPixKey.replace(/\D/g, "");
+        if (cleanNumbers.length >= 10 && cleanNumbers.length <= 11) {
+          finalPixKey = `+55${cleanNumbers}`;
+        } else {
+          finalPixKey = cleanNumbers;
+        }
+      }
+
+      // --- 3. CORREÇÃO DO VALOR (AQUI ESTAVA O ERRO) ---
+      // Explicação: O 'total' chegava como texto ("170.00").
+      // Usamos parseFloat para forçar virar número, e replace para garantir que vírgula vire ponto.
+      const numericTotal = parseFloat(String(total).replace(",", "."));
+
+      // Verificação de segurança
+      if (isNaN(numericTotal) || numericTotal <= 0) {
+        throw new Error("Valor total inválido.");
+      }
+
+      // Agora sim: numericTotal é número, então .toFixed(2) funciona!
+      const amountString = numericTotal.toFixed(2);
+
+      // 4. CRIA PEDIDO
       const orderId = await createOrder(
         "pix_manual",
-        null,
+        {},
         "Aguardando Comprovante",
       );
+      const txid = `PEDIDO${orderId.toString().replace(/\D/g, "")}`.slice(
+        0,
+        25,
+      );
 
-      const txid = `PEDIDO${orderId.toString().slice(0, 15)}`;
+      // 5. GERA PAYLOAD
       const code = generatePixPayload(
-        PIX_KEY,
-        MERCHANT_NAME,
-        MERCHANT_CITY,
-        total,
+        finalPixKey,
+        merchantName,
+        merchantCity,
+        amountString, // <--- Envia o valor corrigido ("170.00")
         txid,
       );
 
       setPixPayload(code);
     } catch (error) {
-      alert("Erro ao gerar: " + error.message);
+      console.error("Erro detalhado:", error);
+      alert("Erro no pagamento: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
+  // --- FUNÇÃO AUXILIAR PARA GERAR O PAYLOAD DO PIX (EMV) ---
+  // Cole isso no FINAL do seu arquivo PaymentScreen.jsx, fora do componente principal
+
+  function generatePixPayload(key, name, city, amount, txid) {
+    const formatField = (id, value) => {
+      const len = value.length.toString().padStart(2, "0");
+      return `${id}${len}${value}`;
+    };
+
+    // 1. Tratamento de Strings
+    const merchantName = name
+      .substring(0, 25)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    const merchantCity = city
+      .substring(0, 15)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    const txtId = txid || "***"; // Se não tiver ID, usa ***
+
+    // 2. Montagem do Payload
+    const payload = [
+      formatField("00", "01"), // Payload Format Indicator
+      formatField(
+        "26",
+        [formatField("00", "br.gov.bcb.pix"), formatField("01", key)].join(""),
+      ), // Merchant Account Information
+      formatField("52", "0000"), // Merchant Category Code
+      formatField("53", "986"), // Transaction Currency (BRL)
+      formatField("54", amount), // Transaction Amount
+      formatField("58", "BR"), // Country Code
+      formatField("59", merchantName), // Merchant Name
+      formatField("60", merchantCity), // Merchant City
+      formatField("62", formatField("05", txtId)), // Additional Data Field Template
+      "6304", // CRC16 ID + Length
+    ].join("");
+
+    // 3. Cálculo do CRC16 (Polinômio 0x1021)
+    const getCRC16 = (str) => {
+      let crc = 0xffff;
+      for (let i = 0; i < str.length; i++) {
+        crc ^= str.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+          if ((crc & 0x8000) !== 0) {
+            crc = (crc << 1) ^ 0x1021;
+          } else {
+            crc = crc << 1;
+          }
+        }
+      }
+      return (crc & 0xffff).toString(16).toUpperCase().padStart(4, "0");
+    };
+
+    return `${payload}${getCRC16(payload)}`;
+  }
   // --- 5. ENVIAR WHATSAPP (MANTIDA) ---
   const sendProofOnWhatsApp = () => {
     const idShort = currentOrderId
@@ -487,3 +540,59 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
 };
 
 export default PaymentScreen;
+
+// --- FUNÇÃO AUXILIAR PARA GERAR O PAYLOAD DO PIX (EMV) ---
+// Cole isso no FINAL do seu arquivo PaymentScreen.jsx, fora do componente principal
+
+function generatePixPayload(key, name, city, amount, txid) {
+  const formatField = (id, value) => {
+    const len = value.length.toString().padStart(2, "0");
+    return `${id}${len}${value}`;
+  };
+
+  // 1. Tratamento de Strings
+  const merchantName = name
+    .substring(0, 25)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  const merchantCity = city
+    .substring(0, 15)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  const txtId = txid || "***"; // Se não tiver ID, usa ***
+
+  // 2. Montagem do Payload
+  const payload = [
+    formatField("00", "01"), // Payload Format Indicator
+    formatField(
+      "26",
+      [formatField("00", "br.gov.bcb.pix"), formatField("01", key)].join(""),
+    ), // Merchant Account Information
+    formatField("52", "0000"), // Merchant Category Code
+    formatField("53", "986"), // Transaction Currency (BRL)
+    formatField("54", amount), // Transaction Amount
+    formatField("58", "BR"), // Country Code
+    formatField("59", merchantName), // Merchant Name
+    formatField("60", merchantCity), // Merchant City
+    formatField("62", formatField("05", txtId)), // Additional Data Field Template
+    "6304", // CRC16 ID + Length
+  ].join("");
+
+  // 3. Cálculo do CRC16 (Polinômio 0x1021)
+  const getCRC16 = (str) => {
+    let crc = 0xffff;
+    for (let i = 0; i < str.length; i++) {
+      crc ^= str.charCodeAt(i) << 8;
+      for (let j = 0; j < 8; j++) {
+        if ((crc & 0x8000) !== 0) {
+          crc = (crc << 1) ^ 0x1021;
+        } else {
+          crc = crc << 1;
+        }
+      }
+    }
+    return (crc & 0xffff).toString(16).toUpperCase().padStart(4, "0");
+  };
+
+  return `${payload}${getCRC16(payload)}`;
+}
