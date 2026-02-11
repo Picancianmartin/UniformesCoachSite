@@ -343,7 +343,7 @@ export default function App() {
         <Toast show={toast.show} message={toast.message} icon={toast.icon} />
         {screens[screen]}
         <Footer
-          brandName="Coach Store"
+          brandName="Ct Coach David Sousa"
           portfolioUrl="https://pietramartin.dev"
           creditName="PM"
           showCredit={true}

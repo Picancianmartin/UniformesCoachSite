@@ -437,7 +437,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
   const copyToClipboard = (text) => navigator.clipboard.writeText(text);
   const openWhatsApp = (phone, name, orderId) => {
     const p = phone ? phone.replace(/\D/g, "") : "";
-    const msg = `Olá ${name}! Tudo bem? Estou entrando em contato sobre o seu pedido #${orderId.toString().slice(0, 6)} na Coach Store.`;
+    const msg = `Olá ${name}! Tudo bem? Estou entrando em contato sobre o seu pedido #${orderId.toString().slice(0, 6)} no Ct Coach David Sousa.`;
     window.open(
       `https://wa.me/55${p}?text=${encodeURIComponent(msg)}`,
       "_blank",
