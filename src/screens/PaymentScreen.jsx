@@ -346,7 +346,8 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
 
     return `${payload}${getCRC16(payload)}`;
   }
-  // --- 5. ENVIAR WHATSAPP (MANTIDA) ---
+
+  // --- 5. ENVIAR WHATSAPP (MODIFICADO) ---
   const sendProofOnWhatsApp = () => {
     const idShort = currentOrderId
       ? currentOrderId.slice(0, 8).toUpperCase()
@@ -354,14 +355,22 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
     const now = new Date();
     const dataHora = `${now.toLocaleDateString("pt-BR")} às ${now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
 
+    // ===> ALTERAÇÃO AQUI <===
     const itemsList = cartItems
       .map((item) => {
+        // Tenta pegar a coleção (pode vir como collection ou colecao)
+        const nomeColecao = item.collection || item.colecao || "";
+        const exibeColecao = nomeColecao ? `[${nomeColecao}]` : "";
+
         const sizeInfo = item.isKit
           ? `(Top: ${item.selectedSizes.top} / Bot: ${item.selectedSizes.bottom})`
           : `(${item.selectedSizes.standard || "Único"})`;
-        return `- ${item.quantity}x ${item.name} ${sizeInfo}`;
+
+        // Adicionamos ${exibeColecao} na linha abaixo
+        return `- ${item.quantity}x ${item.name} ${exibeColecao} ${sizeInfo}`;
       })
       .join("\n");
+    // ========================
 
     const message =
       `*COMPROVANTE DE PAGAMENTO* ✅\n\n` +
@@ -371,10 +380,8 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
       `💵 *Total:* R$ ${total.toFixed(2)}\n\n` +
       `📝 *Resumo:*\n${itemsList}\n\n` +
       `📸 Comprovante em anexo abaixo:
-      
-      
-      
-      `;
+      \n
+      \n`;
 
     const url = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");

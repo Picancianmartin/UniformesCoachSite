@@ -219,6 +219,9 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
             const qtd = item.quantity || 1;
             const nome = item.product_name || item.name || "Produto";
 
+            const colecao = item.collection || item.colecao || "";
+            const textoColecao = colecao ? `(${colecao})` : "";
+
             // Detalhe do tamanho (inteligente)
             let sizeInfo = "";
             if (item.isKit) {
@@ -227,14 +230,14 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
               sizeInfo = `[${item.size_standard || "U"}]`;
             }
 
-            return `▪️ ${qtd}x ${nome} ${sizeInfo}`;
+            return `▪️ ${qtd}x ${nome} ${textoColecao} ${sizeInfo}`;
           })
           .join("\n")
       : "▪️ (Ver itens no sistema)";
 
     // 3. Mensagem Final (Usando * para negrito no WhatsApp)
     const text = `
-Olá, equipe UniformeCoach! 👋
+Olá, Ct Coach David Sousa! 👋
 
 Preciso de ajuda sobre o *Pedido #${orderId}*.
 
@@ -640,6 +643,11 @@ Minha dúvida é:
                               <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white/70 font-bold border border-white/5">
                                 Qtd: {item.quantity}
                               </span>
+                              {(item.collection || item.colecao) && (
+                                <span className="text-[9px] bg-purple-500/10 text-purple-300 px-2 py-0.5 rounded font-bold border border-purple-500/20 uppercase">
+                                  {item.collection || item.colecao}
+                                </span>
+                              )}
                               {item.isKit ? (
                                 <>
                                   <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">

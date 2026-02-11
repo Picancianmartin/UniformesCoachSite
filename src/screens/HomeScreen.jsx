@@ -165,34 +165,55 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
           </div>
         </div>
 
-        {/* --- 3. COMO FUNCIONA (Clean) --- */}
-        <div>
+        {/* --- 3. COMO FUNCIONA (Botões de Navegação) --- */}
+        <div className="mb-8">
           <div className="grid grid-cols-3 gap-3">
             {[
-              { icon: Shirt, title: "1. Escolha", desc: "Monte seu kit" },
-              { icon: CreditCard, title: "2. Pague", desc: "Pix ou Cartão" },
-              { icon: CheckCircle, title: "3. Retire", desc: "No clube" },
+              {
+                icon: Shirt,
+                title: "1. Escolha",
+                desc: "Ir ao Catálogo",
+                route: "catalog", // <--- Verifica se o nome da sua tela principal é 'catalog' ou 'home'
+              },
+              {
+                icon: CreditCard,
+                title: "2. Pague",
+                desc: "Ver Carrinho",
+                route: "cart",
+              },
+              {
+                icon: CheckCircle,
+                title: "3. Retire",
+                desc: "Meus Pedidos",
+                route: "account",
+              },
             ].map((step, i) => (
-              <div
+              <button
                 key={i}
-                className="bg-white/5 rounded-2xl p-4 text-center border border-white/5 flex flex-col items-center justify-center gap-3 hover:bg-white/10 transition-colors"
+                onClick={() => onNavigate(step.route)}
+                className="group bg-white/5 rounded-2xl p-3 py-4 text-center border border-white/5 flex flex-col items-center justify-center gap-3 hover:bg-white/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 active:scale-95 cursor-pointer relative overflow-hidden"
               >
-                <div className="w-10 h-10 bg-gradient-to-br from-white/10 to-white/5 rounded-full flex items-center justify-center text-primary border border-white/10">
-                  <step.icon size={20} />
+                <div className="w-10 h-10 bg-gradient-to-br from-white/10 to-white/5 rounded-full flex items-center justify-center text-primary border border-white/10 group-hover:bg-primary group-hover:text-white group-hover:scale-110 transition-all duration-300 shadow-inner">
+                  <step.icon size={18} />
                 </div>
-                <div>
-                  <p className="font-bold text-xs text-white mb-1">
+
+                <div className="relative z-10">
+                  <p className="font-bold text-xs text-white mb-1 group-hover:text-primary transition-colors">
                     {step.title}
                   </p>
-                  <p className="text-[10px] text-white/40 leading-tight">
+                  <p className="text-[10px] text-white/40 leading-tight group-hover:text-white/60 transition-colors">
                     {step.desc}
                   </p>
                 </div>
-              </div>
+
+                {/* Efeito visual extra no hover (brilho suave) */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/0 via-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              </button>
             ))}
           </div>
         </div>
 
+        
         {/* --- 4. MINI VITRINE (Visual Clean) --- */}
         <div>
           {/* <div className="flex justify-between items-end mb-5 px-1">

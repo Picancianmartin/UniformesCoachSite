@@ -173,7 +173,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
         product.images && Array.isArray(product.images)
           ? product.images.join("\n")
           : "",
-          
+
       category: product.category || "camisetas",
       collection: product.collection || "",
       description: product.description || "",
@@ -716,6 +716,11 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                                     {getItemName(item)}
                                   </p>
                                   <div className="flex flex-wrap gap-2 mt-1.5">
+                                    {(item.collection || item.colecao) && (
+                                      <span className="text-[9px] bg-purple-500/20 px-2 py-0.5 rounded-md text-purple-300 border border-purple-500/20 uppercase font-bold">
+                                        {item.collection || item.colecao}
+                                      </span>
+                                    )}
                                     {item.is_kit || item.isKit ? (
                                       <>
                                         <span className="text-[9px] bg-white/5 px-2 py-0.5 rounded-md text-white/60 border border-white/5">
@@ -832,10 +837,12 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
 
                 {/* --- SELETOR DE COLEÇÃO --- */}
                 <div className="bg-black/20 border border-white/10 rounded-xl p-4">
-                   <CollectionSelector
-                      value={formData.collection}
-                      onChange={(val) => setFormData({ ...formData, collection: val })}
-                   />
+                  <CollectionSelector
+                    value={formData.collection}
+                    onChange={(val) =>
+                      setFormData({ ...formData, collection: val })
+                    }
+                  />
                 </div>
 
                 <div className="relative group">
@@ -900,7 +907,6 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                           </label>
                         </div>
 
-                        
                         {/* Preview da Galeria (Miniaturas com seleção de Capa) */}
                         {formData.images_text && (
                           <div className="space-y-2">
