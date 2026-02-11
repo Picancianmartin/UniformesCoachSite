@@ -27,6 +27,8 @@ import {
   Tag,
   DollarSign,
   Loader,
+  Wallet,
+  Banknote,
   Image as ImageIcon,
 } from "lucide-react";
 
@@ -336,8 +338,45 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
   const getItemName = (item) =>
     item.product_name || item.name || item.title || "Produto sem nome";
 
-  const getStatusConfig = (status) => {
-    const s = status ? status.toLowerCase() : "";
+  // Mudei o parâmetro de (status) para (order)
+  const getStatusConfig = (order) => {
+    if (!order)
+      return {
+        label: "Erro",
+        color: "text-red-500",
+        bg: "bg-red-500/10",
+        border: "border-red-500/20",
+        icon: <AlertCircle size={16} />,
+      };
+
+    const s = order.status ? order.status.toLowerCase() : "";
+    const p = order.payment_method ? order.payment_method.toLowerCase() : "";
+    const isPickupPayment = p.includes("pickup") || p.includes("retirada");
+
+    // === NOVA LÓGICA DE RETIRADA ===
+    if (s.includes("retirada") || s.includes("pronto")) {
+      if (isPickupPayment) {
+        // Tag Amarela/Laranja: Cliente vem buscar E tem que pagar
+        return {
+          label: "Retirar e Pagar",
+          color: "text-orange-400",
+          bg: "bg-orange-500/10",
+          border: "border-orange-500/20",
+          icon: <Wallet size={16} />,
+        };
+      } else {
+        // Tag Azul/Ciano: Cliente vem buscar e JÁ PAGOU (Pix/Cartão)
+        return {
+          label: "Pronto (Pago)",
+          color: "text-cyan-400",
+          bg: "bg-cyan-500/10",
+          border: "border-cyan-500/20",
+          icon: <MapPin size={16} />,
+        };
+      }
+    }
+    // ===============================
+
     if (s.includes("pago") || s.includes("aprovado"))
       return {
         color: "text-green-400",
@@ -346,6 +385,17 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
         icon: <CheckCircle size={16} />,
         label: "Pago",
       };
+
+    // Aguardando Comprovante (Pix Manual)
+    if (s.includes("aguardando") || s.includes("comprovante"))
+      return {
+        color: "text-yellow-400",
+        bg: "bg-yellow-500/10",
+        border: "border-yellow-500/20",
+        icon: <Hourglass size={16} />,
+        label: "Exige Comprovante",
+      };
+
     if (s.includes("produção"))
       return {
         color: "text-purple-400",
@@ -356,29 +406,13 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
       };
     if (s.includes("separação"))
       return {
-        color: "text-orange-400",
-        bg: "bg-orange-500/10",
-        border: "border-orange-500/20",
+        color: "text-indigo-400",
+        bg: "bg-indigo-500/10",
+        border: "border-indigo-500/20",
         icon: <Box size={16} />,
         label: "Em Separação",
       };
-    if (s.includes("retirada"))
-      return {
-        color: "text-cyan-400",
-        bg: "bg-cyan-500/10",
-        border: "border-cyan-500/20",
-        icon: <MapPin size={16} />,
-        label: "Pronto p/ Retirar",
-      };
-    if (s.includes("aguardando"))
-      return {
-        color: "text-yellow-400",
-        bg: "bg-yellow-500/10",
-        border: "border-yellow-500/20",
-        icon: <Hourglass size={16} />,
-        label: "Aguardando",
-      };
-    if (s.includes("concluído"))
+    if (s.includes("concluído") || s.includes("entregue"))
       return {
         color: "text-gray-400",
         bg: "bg-gray-500/10",
@@ -394,14 +428,18 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
         icon: <AlertCircle size={16} />,
         label: "Cancelado",
       };
+
+    // Fallback
     return {
       color: "text-white/50",
       bg: "bg-white/5",
       border: "border-white/10",
       icon: <Package size={16} />,
-      label: status,
+      label: s || "Processando",
     };
   };
+
+  // --- FUNÇÕES QUE FALTAVAM ---
 
   const getPaymentLabel = (method) => {
     if (method === "pix" || method === "pix_manual") return "Pix";
@@ -411,22 +449,29 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
 
   const confirmStatusUpdate = async (newStatus) => {
     if (!selectedOrderForStatus) return;
+
+    // Salva estado anterior para rollback se der erro
     const oldOrders = [...orders];
+
+    // Atualiza visualmente na hora
     setOrders((prev) =>
       prev.map((o) =>
         o.id === selectedOrderForStatus.id ? { ...o, status: newStatus } : o,
       ),
     );
+
     setStatusModalOpen(false);
+
     try {
       const { error } = await supabase
         .from("orders")
         .update({ status: newStatus })
         .eq("id", selectedOrderForStatus.id);
+
       if (error) throw error;
     } catch (error) {
       alert("Erro ao atualizar: " + error.message);
-      setOrders(oldOrders);
+      setOrders(oldOrders); // Desfaz a mudança se falhar
     }
   };
 
@@ -435,34 +480,148 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
     setStatusModalOpen(true);
   };
   const copyToClipboard = (text) => navigator.clipboard.writeText(text);
-  const openWhatsApp = (phone, name, orderId) => {
-    const p = phone ? phone.replace(/\D/g, "") : "";
-    const msg = `Olá ${name}! Tudo bem? Estou entrando em contato sobre o seu pedido #${orderId.toString().slice(0, 6)} no Ct Coach David Sousa.`;
-    window.open(
-      `https://wa.me/55${p}?text=${encodeURIComponent(msg)}`,
-      "_blank",
-    );
+  // --- FUNÇÃO WHATSAPP MELHORADA (ADMIN -> CLIENTE) ---
+  const openWhatsApp = (order) => {
+    // 1. Validação básica
+    if (!order) return alert("Erro: Pedido inválido");
+
+    // 2. Limpeza do telefone
+    let phone = order.customer_phone
+      ? order.customer_phone.replace(/\D/g, "")
+      : "";
+    if (phone.length <= 11 && phone.length > 0) {
+      phone = `55${phone}`;
+    }
+
+    // 3. Preparação dos dados
+    const name = order.customer_name || "Cliente";
+    const orderId =
+      order.display_id || (order.id ? order.id.toString().slice(0, 6) : "???");
+
+    // 4. Monta a lista de itens
+    const itemsListFormatted = (order.items || [])
+      .map((item) => {
+        const qtd = item.quantity || 1;
+        const nomeProduct =
+          item.product_name || item.name || item.title || "Produto";
+
+        // Coleção entre parênteses
+        const colecao = item.collection || item.colecao || "";
+        const textoColecao = colecao ? `(${colecao})` : "";
+
+        // Tamanhos
+        let sizeInfo = "";
+        if (item.isKit || item.is_kit) {
+          const top = item.selectedSizes?.top || item.size_top || "?";
+          const bot = item.selectedSizes?.bottom || item.size_bottom || "?";
+          sizeInfo = `(T:${top} / B:${bot})`;
+        } else {
+          const std = item.selectedSizes?.standard || item.size_standard || "U";
+          sizeInfo = `(${std})`;
+        }
+
+        // Importante: Usei um traço simples (-) em vez de bolinhas ou quadrados especiais
+        return `- ${qtd}x ${nomeProduct} ${textoColecao} ${sizeInfo}`;
+      })
+      .join("\n");
+
+    // === SOLUÇÃO BLINDADA PARA EMOJIS ===
+    // \uD83D\uDC4B = Mãozinha dando tchau (👋)
+    // \uD83D\uDCDD = Papel e caneta (📝)
+    // \uD83D\uDCB0 = Saco de dinheiro (💰)
+
+    const msg =
+      `Olá *${name}*! Tudo bem? \uD83D\uDC4B\n\n` +
+      `Estou entrando em contato sobre o seu pedido *#${orderId}*.\n\n` +
+      `\uD83D\uDCDD *Resumo:*\n${itemsListFormatted}\n\n` +
+      `\uD83D\uDCB0 *Total:* R$ ${Number(order.total || 0).toFixed(2)}\n\n`;
+
+    // 5. Gera o link e abre
+    // encodeURIComponent é essencial para transformar os espaços e quebras de linha em código de URL
+    const link = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(link, "_blank");
   };
 
   const filteredOrders = orders.filter((order) => {
     if (filter === "todos") return true;
+
     const s = order.status ? order.status.toLowerCase() : "";
-    if (filter === "pendentes")
-      return s.includes("aguardando") || s.includes("pendente");
+    const p = order.payment_method ? order.payment_method.toLowerCase() : "";
+    const isPickupPayment = p.includes("pickup") || p.includes("retirada");
+
+    // 1. FILTRO: RETIRADA (Antigo Pendentes - Lista Logística)
+    // Mostra todos que estão prontos para o cliente buscar
+    if (filter === "retirada") {
+      return s.includes("retirada") || s.includes("pronto");
+    }
+
+    // 2. FILTRO: A RECEBER (Lista Financeira)
+    // Mostra: (Retirada Pendente que é Pagar na Entrega) OU (Aguardando Comprovante Pix)
+    if (filter === "areceber") {
+      const aguardandoPix =
+        s.includes("aguardando") || s.includes("comprovante");
+      const retirarEPagar =
+        (s.includes("retirada") || s.includes("pronto")) && isPickupPayment;
+
+      return aguardandoPix || retirarEPagar;
+    }
+
     if (filter === "producao")
       return s.includes("produção") || s.includes("separação");
-    if (filter === "ativos")
-      return !s.includes("concluído") && !s.includes("cancelado");
+    if (filter === "cancelados") return s.includes("cancelado");
+
     return true;
   });
 
-  const stats = {
-    total: orders.length,
-    pending: orders.filter((o) =>
-      o.status?.toLowerCase().includes("aguardando"),
-    ).length,
-    revenue: orders.reduce((acc, curr) => acc + (curr.total || 0), 0),
+  // --- NOVA LÓGICA FINANCEIRA ---
+  const calculateStats = () => {
+    return orders.reduce(
+      (acc, order) => {
+        const s = order.status ? order.status.toLowerCase() : "";
+        const p = order.payment_method
+          ? order.payment_method.toLowerCase()
+          : "";
+        const val = Number(order.total) || 0;
+
+        // 1. Contagem Total
+        acc.total++;
+
+        // 2. Contagem Pendentes
+        if (s.includes("aguardando") || s.includes("pendente")) {
+          acc.pending++;
+        }
+
+        // 3. Lógica de Valores (Ignora Cancelados)
+        if (!s.includes("cancelado")) {
+          // Verifica se é Pagar na Retirada
+          const isPickup = p.includes("pickup") || p.includes("retirada");
+          // Verifica se já finalizou
+          const isFinished =
+            s.includes("concluído") ||
+            s.includes("entregue") ||
+            s.includes("pago");
+
+          if (isPickup) {
+            if (isFinished) {
+              // Retirada e Concluído = Dinheiro na mão
+              acc.received += val;
+            } else {
+              // Retirada mas não Concluído = A Receber
+              acc.toReceive += val;
+            }
+          } else {
+            // Pix ou Cartão Online = Dinheiro na mão (Consideramos recebido)
+            acc.received += val;
+          }
+        }
+
+        return acc;
+      },
+      { total: 0, pending: 0, received: 0, toReceive: 0 },
+    );
   };
+
+  const stats = calculateStats();
 
   return (
     <div className="min-h-screen bg-navy font-outfit text-white pb-24 relative selection:bg-primary/30">
@@ -508,30 +667,64 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
           </div>
         </div>
 
+        {/* --- CARDS DE ESTATÍSTICAS (SUBSTITUIR O BLOCO ANTIGO POR ESTE) --- */}
         {activeTab === "orders" && (
-          <div className="grid grid-cols-3 gap-3 mb-2">
-            <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
-              <p className="text-[10px] text-white/40 uppercase font-bold tracking-wider">
+          // Mudamos para grid-cols-2 (celular) e md:grid-cols-4 (PC)
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+            {/* 1. Total Pedidos */}
+            <div className="bg-white/5 p-3 rounded-2xl border border-white/5 relative overflow-hidden">
+              {/* ÍCONE DE FUNDO */}
+              <div className="absolute right-[-10px] top-[-10px] opacity-10 text-white">
+                <Package size={60} />
+              </div>
+              <p className="text-[10px] text-white/40 uppercase font-bold tracking-wider flex items-center gap-1">
                 Pedidos
               </p>
-              <p className="text-lg font-bold text-white">{stats.total}</p>
+              <p className="text-lg font-bold text-white mt-1">{stats.total}</p>
             </div>
-            <div className="bg-yellow-500/10 p-3 rounded-2xl border border-yellow-500/20">
-              <p className="text-[10px] text-yellow-400/70 uppercase font-bold tracking-wider">
+
+            {/* 2. Pendentes */}
+            <div className="bg-yellow-500/10 p-3 rounded-2xl border border-yellow-500/20 relative overflow-hidden">
+              {/* ÍCONE DE FUNDO */}
+              <div className="absolute right-[-10px] top-[-10px] opacity-10 text-yellow-400">
+                <Hourglass size={60} />
+              </div>
+              <p className="text-[10px] text-yellow-400/70 uppercase font-bold tracking-wider flex items-center gap-1">
                 Pendentes
               </p>
-              <p className="text-lg font-bold text-yellow-400">
+              <p className="text-lg font-bold text-yellow-400 mt-1">
                 {stats.pending}
               </p>
             </div>
-            <div className="bg-primary/10 p-3 rounded-2xl border border-primary/20">
-              <p className="text-[10px] text-primary/70 uppercase font-bold tracking-wider">
-                Faturamento
+
+            {/* 3. A Receber (NOVO CARD) */}
+            <div className="bg-orange-500/10 p-3 rounded-2xl border border-orange-500/20 relative overflow-hidden">
+              <div className="absolute right-[-10px] top-[-10px] opacity-10 text-orange-400">
+                <Wallet size={60} />
+              </div>
+              <p className="text-[10px] text-orange-400/70 uppercase font-bold tracking-wider flex items-center gap-1">
+                A Receber
               </p>
-              <p className="text-sm font-bold text-primary">
+              <p className="text-sm font-bold text-orange-400 mt-1">
                 R${" "}
-                {stats.revenue.toLocaleString("pt-BR", {
-                  minimumFractionDigits: 0,
+                {stats.toReceive.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                })}
+              </p>
+            </div>
+
+            {/* 4. Recebido (NOVO CARD - Substitui Faturamento) */}
+            <div className="bg-green-500/10 p-3 rounded-2xl border border-green-500/20 relative overflow-hidden">
+              <div className="absolute right-[-10px] top-[-10px] opacity-10 text-green-400">
+                <Banknote size={60} />
+              </div>
+              <p className="text-[10px] text-green-400/70 uppercase font-bold tracking-wider flex items-center gap-1">
+                Recebido
+              </p>
+              <p className="text-sm font-bold text-green-400 mt-1">
+                R${" "}
+                {stats.received.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
                 })}
               </p>
             </div>
@@ -569,9 +762,10 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
             <div className="flex gap-2 overflow-x-auto pb-4 mb-2 no-scrollbar">
               {[
                 { id: "todos", label: "Todos" },
-                { id: "pendentes", label: "Pendentes" },
+                { id: "retirada", label: "Pronto p/ Retirar" },
                 { id: "producao", label: "Produção" },
-                { id: "ativos", label: "Em Aberto" },
+                { id: "areceber", label: "A Receber / Comprovante" },
+                { id: "cancelados", label: "Cancelados" },
               ].map((f) => (
                 <button
                   key={f.id}
@@ -598,7 +792,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                 </div>
               ) : (
                 filteredOrders.map((order) => {
-                  const statusConfig = getStatusConfig(order.status);
+                  const statusConfig = getStatusConfig(order);
                   const isExpanded = expandedOrder === order.id;
                   const itemsList = Array.isArray(order.items)
                     ? order.items
@@ -687,13 +881,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                               <RefreshCw size={14} /> Mudar Status
                             </button>
                             <button
-                              onClick={() =>
-                                openWhatsApp(
-                                  order.customer_phone,
-                                  order.customer_name,
-                                  order.display_id || order.id,
-                                )
-                              }
+                              onClick={() => openWhatsApp(order)}
                               className="bg-[#25D366] hover:bg-[#1ebc57] text-black text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/20 border-b-4 border-[#128c7e] active:border-0 active:translate-y-1"
                             >
                               <MessageCircle size={14} /> WhatsApp
