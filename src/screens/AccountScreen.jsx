@@ -250,7 +250,8 @@ ${itemsList}
 
 ------------------------------
 Minha dúvida é:
-
+\n
+\n
 
 
 `.trim(); // .trim() remove espaços vazios no começo e fim
