@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronLeft, ShoppingBag, User, Home, LayoutGrid } from "lucide-react";
+import { ChevronLeft, ShoppingBag, User } from "lucide-react";
 import defaultLogo from "../assets/logodavid.png";
 
 const Header = ({
@@ -11,7 +11,6 @@ const Header = ({
   onCart,
   showAccount,
   onAccount,
-  onNavigate,
   logoSrc,
   showLogo,
   // DEFINA AQUI O TAMANHO PADRÃO GERAL (Caso você esqueça de passar na tela)
@@ -20,8 +19,8 @@ const Header = ({
   const finalLogo = logoSrc || defaultLogo;
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-navy/90 backdrop-blur-xl border-b border-white/10 transition-all duration-300">
-      <div className="max-w-[428px] lg:max-w-7xl mx-auto px-5 h-16 grid grid-cols-[1fr_auto_1fr] items-center">
+    <header className="fixed top-0 left-0 w-full z-40 bg-navy/90 backdrop-blur-xl border-b border-white/10 transition-all duration-300 lg:pl-20">
+      <div className="max-w-[428px] lg:max-w-6xl mx-auto px-5 h-16 grid grid-cols-[1fr_auto_1fr] items-center">
         {/* --- ESQUERDA (Voltar ou Logo Padrão) --- */}
         <div className="flex justify-start items-center gap-3">
           {showBack ? (
@@ -38,7 +37,6 @@ const Header = ({
                 <img
                   src={finalLogo}
                   alt="Logo Coach"
-                  // CORREÇÃO: Agora usa 'logoSize' aqui também (antes estava travado em h-16)
                   className={`${logoSize} object-contain`}
                 />
               ) : (
@@ -48,27 +46,6 @@ const Header = ({
               )}
             </div>
           )}
-
-          {/* --- DESKTOP NAV LINKS (Visíveis apenas em lg+) --- */}
-          {onNavigate && (
-            <nav className="hidden lg:flex items-center gap-1 ml-4">
-              {[
-                { id: "home", label: "Início", icon: Home },
-                { id: "catalog", label: "Catálogo", icon: LayoutGrid },
-                { id: "cart", label: "Sacola", icon: ShoppingBag },
-                { id: "account", label: "Conta", icon: User },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => onNavigate(item.id)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2"
-                >
-                  <item.icon size={16} />
-                  {item.label}
-                </button>
-              ))}
-            </nav>
-          )}
         </div>
 
         {/* --- CENTRO (Título + Logo Opcional) --- */}
@@ -77,7 +54,6 @@ const Header = ({
             <img
               src={finalLogo}
               alt="Logo Centro"
-              // Usa a mesma variável para garantir consistência
               className={`${logoSize} object-contain`}
             />
           )}

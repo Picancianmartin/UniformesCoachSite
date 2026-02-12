@@ -44,10 +44,9 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
         onCart={() => onNavigate("cart")}
         showAccount
         onAccount={() => onNavigate("account")}
-        onNavigate={onNavigate}
       />
 
-      <div className="pt-24 px-5 lg:px-8 lg:max-w-7xl lg:mx-auto space-y-10 animate-fade-in">
+      <div className="pt-24 px-5 lg:px-8 lg:max-w-6xl lg:mx-auto space-y-10 animate-fade-in">
         {/* --- 1. HERO SECTION: Foco na Ação --- */}
         <div className="relative overflow-hidden rounded-[2rem] bg-white/5 border border-white/10 p-8 text-center group">
           {/* Efeitos de Fundo */}

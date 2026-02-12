@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import "./styles/index.css";
 import { supabase } from "./services/supabase";
 import BottomNav from "./components/BottomNav";
+import DesktopSidebar from "./components/DesktopSidebar";
 
 // Componentes e Telas
 import Toast from "./components/Toast";
@@ -364,7 +365,16 @@ export default function App() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
       </div>
 
-      <div className="relative z-10 max-w-[428px] lg:max-w-full mx-auto min-h-screen pb-16 lg:pb-0">
+      {/* Desktop Sidebar (hidden on mobile) */}
+      {screen !== "signup" && screen !== "admin" && (
+        <DesktopSidebar
+          active={screen === "product" ? "catalog" : screen}
+          onNavigate={setScreen}
+          cartCount={cart.length}
+        />
+      )}
+
+      <div className="relative z-10 max-w-[428px] lg:max-w-full lg:pl-20 mx-auto min-h-screen pb-16 lg:pb-0">
         <Toast show={toast.show} message={toast.message} icon={toast.icon} />
         {screens[screen]}
         <Footer
