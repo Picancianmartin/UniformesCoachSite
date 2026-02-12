@@ -34,7 +34,7 @@ const Header = ({
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full z-40 bg-navy/90 backdrop-blur-xl border-b border-white/10 transition-all duration-300 lg:pl-20">
+    <header className="fixed top-0 left-0 w-full z-40 bg-navy/90 backdrop-blur-xl border-b border-white/10 transition-all duration-300 lg:pl-24">
       <div className="max-w-[428px] lg:max-w-5xl mx-auto px-5 h-16 grid grid-cols-[1fr_auto_1fr] items-center">
         {/* --- ESQUERDA (Voltar ou Logo Padrão) --- */}
         <div className="flex justify-start items-center gap-3">

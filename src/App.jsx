@@ -393,7 +393,7 @@ export default function App() {
         />
       )}
 
-      <div className="relative z-10 max-w-[428px] lg:max-w-full lg:pl-20 mx-auto min-h-screen pb-16 lg:pb-0">
+      <div className="relative z-10 max-w-[428px] lg:max-w-full lg:pl-24 mx-auto min-h-screen pb-16 lg:pb-0">
         <Toast show={toast.show} message={toast.message} icon={toast.icon} />
         {screens[screen]}
         <Footer

@@ -10,14 +10,14 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
   ];
 
   return (
-    <aside className="hidden lg:flex fixed top-0 left-0 h-screen w-20 z-50 flex-col items-center py-8 bg-navy/95 backdrop-blur-2xl border-r border-white/10 shadow-[4px_0_24px_rgba(0,0,0,0.3)]">
+    <aside className="hidden lg:flex fixed top-0 left-0 h-screen w-24 z-50 flex-col items-center py-8 bg-navy/95 backdrop-blur-2xl border-r border-white/10 shadow-[4px_0_24px_rgba(0,0,0,0.3)]">
       {/* Logo / Brand Mark */}
       <div className="w-11 h-11 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-primary font-bold text-sm mb-10 shadow-neon">
         C
       </div>
 
       {/* Nav Items */}
-      <nav className="flex-1 flex flex-col items-center gap-4">
+      <nav className="flex-1 flex flex-col items-center gap-5">
         {items.map((item) => {
           const isActive = active === item.id;
           const Icon = item.icon;
@@ -27,7 +27,7 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={`
-                relative w-16 h-16 rounded-2xl flex flex-col items-center justify-center gap-1.5
+                relative w-[4.5rem] h-[4.5rem] rounded-2xl flex flex-col items-center justify-center gap-2
                 transition-all duration-300 group
                 ${isActive
                   ? "bg-primary/15 text-primary shadow-[0_0_20px_rgba(0,123,186,0.15)]"
@@ -57,8 +57,8 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
               </div>
 
               <span
-                className={`text-[9px] tracking-wide transition-all duration-300 ${
-                  isActive ? "font-bold opacity-100" : "font-medium opacity-60"
+                className={`text-xs font-medium transition-all duration-300 ${
+                  isActive ? "font-bold opacity-100" : "opacity-60"
                 }`}
               >
                 {item.label}

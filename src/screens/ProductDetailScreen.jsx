@@ -88,9 +88,9 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
       {/* --- Botão Voltar (Fixo sobre tudo) --- */}
       <button
         onClick={() => onNavigate("catalog")}
-        className="fixed top-6 left-6 lg:left-[calc(5rem+1.5rem)] w-10 h-10 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all z-50"
+        className="fixed top-6 left-6 lg:left-[calc(6rem+1.5rem)] w-10 h-10 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all z-50"
         aria-label="Voltar"
-      >{/* lg:left offset = sidebar width (5rem/80px) + spacing (1.5rem/24px) */}
+      >{/* lg:left offset = sidebar width (6rem/96px) + spacing (1.5rem/24px) */}
         <ArrowLeft size={20} />
       </button>
 
@@ -272,7 +272,7 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
       </div>{/* End 2-col grid */}
 
       {/* --- FOOTER FIXO --- */}
-      <div className="fixed bottom-0 left-0 w-full p-6 bg-navy/95 backdrop-blur-xl border-t border-white/10 z-30 safe-area-bottom lg:pl-20">
+      <div className="fixed bottom-0 left-0 w-full p-6 bg-navy/95 backdrop-blur-xl border-t border-white/10 z-30 safe-area-bottom lg:pl-24">
         <div className="max-w-[428px] lg:max-w-5xl mx-auto">
           <button
             onClick={handleAdd}

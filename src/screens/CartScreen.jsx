@@ -233,7 +233,7 @@ const CartScreen = ({
 
       {/* 3. BARRA DE TOTAL FIXA */}
       {cartItems.length > 0 && (
-        <div className="fixed bottom-0 left-0 w-full p-6 bg-navy/95 backdrop-blur-xl border-t border-white/10 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] lg:pl-20">
+        <div className="fixed bottom-0 left-0 w-full p-6 bg-navy/95 backdrop-blur-xl border-t border-white/10 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] lg:pl-24">
           <div className="max-w-[428px] lg:max-w-5xl mx-auto">
             <div className="flex justify-between items-end mb-4 px-1">
               <div>
