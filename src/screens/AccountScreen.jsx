@@ -290,7 +290,7 @@ Minha dúvida é:
               <h1 className="text-2xl font-bold text-white">Minha Conta</h1>
             </div>
 
-            <p className="text-white/50 text-sm text-center">
+            <p className="text-white/50 text-sm">
               {isLoggedIn
                 ? `Olá, ${user?.name ? user.name.split(" ")[0] : isAdmin && user?.email ? user.email.split("@")[0].charAt(0).toUpperCase() + user.email.split("@")[0].slice(1) : "Admin"}!`
                 : "Identifique-se"}
