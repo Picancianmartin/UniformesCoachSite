@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./styles/index.css";
 import { supabase } from "./services/supabase";
 import BottomNav from "./components/BottomNav";
@@ -15,12 +15,12 @@ import ConfirmationScreen from "./screens/ConfirmationScreen";
 import AccountScreen from "./screens/AccountScreen";
 import AdminScreen from "./screens/AdminScreen";
 import Footer from "./components/ui/Footer";
-import ResetPasswordScreen from "./screens/ResetPassworScreen";
+import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 
 export default function App() {
   const [screen, setScreen] = useState("home");
   const [toast, setToast] = useState({ show: false, message: "", icon: "" });
-  const [isAdmin, setIsAdmin] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // 1. Função auxiliar robusta (ignora espaços e case sensitive)
@@ -114,7 +114,7 @@ export default function App() {
     try {
       // 1. Tenta desconectar do Supabase (Garante que o Admin saia)
       await supabase.auth.signOut();
-    } catch (error) { 
+    } catch (error) {
       console.error("Erro ao sair:", error);
     }
 
@@ -132,7 +132,7 @@ export default function App() {
   };
 
   // --- 2. Lógica Supabase (Busca e Salva) ---
-  const fetchMyOrders = async (phone) => {
+  const fetchMyOrders = useCallback(async (phone) => {
     if (!phone) return [];
     const { data, error } = await supabase
       .from("orders")
@@ -145,24 +145,9 @@ export default function App() {
       return [];
     }
     return data;
-  };
-
-  useEffect(() => {
-    // Escuta eventos de autenticação
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event) => {
-        // Se o evento for "PASSWORD_RECOVERY", manda para a tela de reset
-        if (event === "PASSWORD_RECOVERY") {
-          setScreen("reset-password");
-        }
-      },
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
   }, []);
 
+  
   useEffect(() => {
     if (user.phone) {
       fetchMyOrders(user.phone).then((data) => setOrders(data || []));
