@@ -4,7 +4,7 @@ const DESKTOP_BREAKPOINT = 1024;
 
 export default function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(
-    () => window.innerWidth >= DESKTOP_BREAKPOINT,
+    () => typeof window !== "undefined" && window.innerWidth >= DESKTOP_BREAKPOINT,
   );
 
   useEffect(() => {
