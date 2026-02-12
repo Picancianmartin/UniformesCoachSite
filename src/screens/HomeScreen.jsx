@@ -74,12 +74,12 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
               <Sparkles size={10} /> Nova Coleção 2026
             </div>
 
-            {/* Title hierarchy */}
-            <p className="text-sm tracking-widest uppercase text-gray-300 font-medium mb-1">
-              Faça parte
-            </p>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-none mb-3">
-              DESSE TIME
+            {/* Title */}
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight">
+              FAÇA PARTE <br />{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
+                DESSE TIME
+              </span>
             </h1>
 
             {/* Subtitle */}
