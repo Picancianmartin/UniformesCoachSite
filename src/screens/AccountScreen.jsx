@@ -265,7 +265,7 @@ Minha dúvida é:
   };
 
   return (
-    <div className="min-h-screen bg-navy pb-24 animate-fade-in font-outfit text-white relative">
+    <div className="min-h-screen bg-navy pb-24 lg:pb-8 animate-fade-in font-outfit text-white relative">
       {/* HEADER */}
       <div className="pt-6 px-6 pb-6 border-b border-white/5 bg-navy/80 backdrop-blur-xl sticky top-0 z-20 flex justify-between items-center">
         <div>
@@ -296,7 +296,7 @@ Minha dúvida é:
         )}
       </div>
 
-      <div className="px-6 space-y-8 mt-6">
+      <div className="px-6 lg:px-8 lg:max-w-5xl lg:mx-auto space-y-8 mt-6">
         {/* LOGIN CARD */}
         {!isLoggedIn ? (
           <button

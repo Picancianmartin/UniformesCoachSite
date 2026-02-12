@@ -124,7 +124,7 @@ const CatalogScreen = ({ onNavigate, onSelectProduct, cartItems = [] }) => {
   });
 
   return (
-    <div className="min-h-screen bg-navy pb-24 font-outfit text-white">
+    <div className="min-h-screen bg-navy pb-24 lg:pb-8 font-outfit text-white">
       <Header
         title="Catálogo"
         showCart
@@ -133,9 +133,10 @@ const CatalogScreen = ({ onNavigate, onSelectProduct, cartItems = [] }) => {
         showBack={false}
         logoSrc={logoAzul}
         logoSize="h-12 w-auto ml-1.5"
+        onNavigate={onNavigate}
       />
 
-      <div className="pt-24 px-5 space-y-6">
+      <div className="pt-24 px-5 lg:px-8 lg:max-w-7xl lg:mx-auto space-y-6">
         {/* --- BARRA DE BUSCA --- */}
         <div className="flex gap-3 animate-fade-in">
           <div className="relative flex-1 group">
@@ -185,7 +186,7 @@ const CatalogScreen = ({ onNavigate, onSelectProduct, cartItems = [] }) => {
         {/* --- GRID DE PRODUTOS --- */}
         <div>
           {loading ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
@@ -216,7 +217,7 @@ const CatalogScreen = ({ onNavigate, onSelectProduct, cartItems = [] }) => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 animate-slide-up">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6 animate-slide-up">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}

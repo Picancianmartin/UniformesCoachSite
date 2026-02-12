@@ -36,7 +36,7 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
   };
 
   return (
-    <div className="bg-navy min-h-screen font-outfit text-white pb-32">
+    <div className="bg-navy min-h-screen font-outfit text-white pb-32 lg:pb-8">
       <Header
         logoSrc={logodavid}
         showCart
@@ -44,9 +44,10 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
         onCart={() => onNavigate("cart")}
         showAccount
         onAccount={() => onNavigate("account")}
+        onNavigate={onNavigate}
       />
 
-      <div className="pt-24 px-5 space-y-10 animate-fade-in">
+      <div className="pt-24 px-5 lg:px-8 lg:max-w-7xl lg:mx-auto space-y-10 animate-fade-in">
         {/* --- 1. HERO SECTION: Foco na Ação --- */}
         <div className="relative overflow-hidden rounded-[2rem] bg-white/5 border border-white/10 p-8 text-center group">
           {/* Efeitos de Fundo */}
@@ -58,7 +59,7 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
               <Sparkles size={10} /> Nova Coleção 2026
             </div>
 
-            <h1 className="text-xl md:text-4xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
               FAÇA PARTE <br />{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
                 DESSE TIME
@@ -67,7 +68,7 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
 
             <button
               onClick={() => onNavigate("catalog")}
-              className="w-full py-3 bg-white text-navy rounded-2xl font-bold text-md hover:scale-[1.02] active:scale-95 transition-all  flex items-center justify-center gap-3"
+              className="w-full lg:w-auto lg:px-12 py-3 bg-white text-navy rounded-2xl font-bold text-md hover:scale-[1.02] active:scale-95 transition-all  flex items-center justify-center gap-3"
             >
               Acessar Loja <ArrowRight size={18} />
             </button>

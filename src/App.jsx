@@ -364,7 +364,7 @@ export default function App() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
       </div>
 
-      <div className="relative z-10 max-w-[428px] mx-auto min-h-screen pb-16">
+      <div className="relative z-10 max-w-[428px] lg:max-w-full mx-auto min-h-screen pb-16 lg:pb-0">
         <Toast show={toast.show} message={toast.message} icon={toast.icon} />
         {screens[screen]}
         <Footer

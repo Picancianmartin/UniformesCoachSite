@@ -86,7 +86,7 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
     <div className="min-h-screen bg-navy font-outfit text-white pb-24 relative">
       
       {/* --- HERO SECTION (IMAGEM ORIGINAL) --- */}
-      <div className="relative h-[55vh] w-full bg-navy-light group">
+      <div className="relative h-[55vh] lg:h-[60vh] w-full lg:max-w-5xl lg:mx-auto bg-navy-light group">
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -156,7 +156,7 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
         </div>
       </div>
 
-      <div className="px-6 pt-10 space-y-8">
+      <div className="px-6 lg:px-8 lg:max-w-5xl lg:mx-auto pt-10 space-y-8">
         {/* --- SELETORES DE TAMANHO --- */}
         <div className="space-y-6">
           {isKit ? (
@@ -246,7 +246,7 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
 
       {/* --- FOOTER FIXO --- */}
       <div className="fixed bottom-0 left-0 w-full p-6 bg-navy/95 backdrop-blur-xl border-t border-white/10 z-30 safe-area-bottom">
-        <div className="max-w-[428px] mx-auto">
+        <div className="max-w-[428px] lg:max-w-5xl mx-auto">
           <button
             onClick={handleAdd}
             disabled={!canAdd}
