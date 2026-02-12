@@ -1,8 +1,12 @@
 import { useEffect, useRef } from "react";
 
+const EDGE_ZONE_PX = 30; // Left edge detection zone
+const MIN_SWIPE_PX = 80; // Minimum horizontal distance to trigger back
+const MAX_DIAGONAL_RATIO = 0.5; // dy must be < dx * ratio (keeps swipe horizontal)
+
 /**
- * Detects a swipe-right gesture from the left edge of the screen (< 30px)
- * and calls `onSwipeBack` when detected. Works on touch and trackpad.
+ * Detects a swipe-right gesture from the left edge of the screen
+ * and calls `onSwipeBack` when detected. Works on touch devices.
  */
 export default function useSwipeBack(onSwipeBack) {
   const touchStart = useRef(null);
@@ -12,8 +16,7 @@ export default function useSwipeBack(onSwipeBack) {
 
     const handleTouchStart = (e) => {
       const touch = e.touches[0];
-      // Only trigger from left edge (first 30px)
-      if (touch.clientX < 30) {
+      if (touch.clientX < EDGE_ZONE_PX) {
         touchStart.current = { x: touch.clientX, y: touch.clientY };
       } else {
         touchStart.current = null;
@@ -26,8 +29,7 @@ export default function useSwipeBack(onSwipeBack) {
       const dx = touch.clientX - touchStart.current.x;
       const dy = Math.abs(touch.clientY - touchStart.current.y);
 
-      // Horizontal swipe > 80px, and mostly horizontal (not diagonal)
-      if (dx > 80 && dy < dx * 0.5) {
+      if (dx > MIN_SWIPE_PX && dy < dx * MAX_DIAGONAL_RATIO) {
         onSwipeBack();
       }
       touchStart.current = null;

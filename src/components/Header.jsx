@@ -22,8 +22,9 @@ const Header = ({
 
   // Avatar logic: initials or "C"
   const getAvatarText = () => {
-    if (user?.name) {
-      const parts = user.name.trim().split(/\s+/);
+    const name = user?.name?.trim();
+    if (name) {
+      const parts = name.split(/\s+/);
       if (parts.length >= 2) {
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
       }
