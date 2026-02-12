@@ -12,7 +12,7 @@ const BottomNav = ({ active, onNavigate, cartCount = 0 }) => {
 
   return (
     // 'pb-safe' é vital para iPhones novos (Home Indicator)
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f172a]/95 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f172a]/95 backdrop-blur-xl border-t border-white/5 pb-[env(safe-area-inset-bottom)] lg:hidden">
       
       {/* Mudei para GRID para áreas de toque iguais e perfeitas */}
       <div className="max-w-md mx-auto grid grid-cols-4 h-16">

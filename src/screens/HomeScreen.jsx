@@ -15,9 +15,11 @@ import {
 import Header from "../components/Header";
 import BottomNav from "../components/BottomNav";
 import logodavid from "../assets/logodavid.png";
+import useIsDesktop from "../hooks/useIsDesktop";
 
-const HomeScreen = ({ onNavigate, cartItems = [] }) => {
-  const [storyOpen, setStoryOpen] = useState(false);
+const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
+  const isDesktop = useIsDesktop();
+  const [storyOpen, setStoryOpen] = useState(isDesktop);
 
   // // Lista de produtos (Mantida)
   // const featuredProducts = [
@@ -36,7 +38,7 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
   };
 
   return (
-    <div className="bg-navy min-h-screen font-outfit text-white pb-32">
+    <div className="bg-navy min-h-screen font-outfit text-white pb-32 lg:pb-8">
       <Header
         logoSrc={logodavid}
         showCart
@@ -44,38 +46,59 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
         onCart={() => onNavigate("cart")}
         showAccount
         onAccount={() => onNavigate("account")}
+        onNavigate={onNavigate}
+        user={user}
       />
 
-      <div className="pt-24 px-5 space-y-10 animate-fade-in">
-        {/* --- 1. HERO SECTION: Foco na Ação --- */}
-        <div className="relative overflow-hidden rounded-[2rem] bg-white/5 border border-white/10 p-8 text-center group">
-          {/* Efeitos de Fundo */}
-          <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none mix-blend-overlay"></div>
-          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/30 blur-[80px] rounded-full pointer-events-none" />
+      <div className="pt-24 px-5 lg:px-8 lg:max-w-6xl lg:mx-auto space-y-10 animate-fade-in">
+        {/* --- Desktop: Hero + Brand Story side-by-side --- */}
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-stretch space-y-10 lg:space-y-0 transition-all duration-500 ease-in-out">
+        {/* --- 1. HERO SECTION: Banner Premium --- */}
+        <div
+          onClick={() => onNavigate("catalog")}
+          className="relative overflow-hidden rounded-3xl min-h-[220px] h-full group cursor-pointer border border-white/10 hover:border-white/20 transition-all duration-500 ease-in-out"
+        >
+          {/* Background layers */}
+          <div className="absolute inset-0 bg-gradient-to-br from-navy-light via-[#041a4d] to-navy transition-transform duration-700 group-hover:scale-105" />
+          <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.04] pointer-events-none" />
+          <div className="absolute -top-10 -right-10 w-60 h-60 bg-primary/25 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-accent/15 blur-[80px] rounded-full pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest">
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/40 to-transparent pointer-events-none" />
+
+          {/* Content — centered vertically and horizontally */}
+          <div className="relative z-10 flex flex-col justify-center items-center text-center h-full p-8 lg:p-10">
+            {/* Badge */}
+            <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-primary text-[10px] lg:text-sm font-bold uppercase tracking-widest w-fit">
               <Sparkles size={10} /> Nova Coleção 2026
             </div>
 
-            <h1 className="text-xl md:text-4xl font-bold text-white mb-6 leading-tight">
+            {/* Title */}
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight">
               FAÇA PARTE <br />{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
                 DESSE TIME
               </span>
             </h1>
 
+            {/* Subtitle */}
+            <p className="text-sm text-gray-200/80 max-w-xs mb-6 leading-relaxed">
+              Vista a camisa dos campeões.
+            </p>
+
+            {/* Glass CTA button */}
             <button
-              onClick={() => onNavigate("catalog")}
-              className="w-full py-3 bg-white text-navy rounded-2xl font-bold text-md hover:scale-[1.02] active:scale-95 transition-all  flex items-center justify-center gap-3"
+              onClick={(e) => { e.stopPropagation(); onNavigate("catalog"); }}
+              className="w-fit px-8 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-2xl font-bold text-sm lg:text-lg flex items-center gap-3 hover:bg-white hover:text-navy active:scale-95 transition-all duration-300 shadow-lg shadow-black/10"
             >
-              Acessar Loja <ArrowRight size={18} />
+              Acessar Loja <ArrowRight size={16} />
             </button>
           </div>
         </div>
 
         {/* --- 2. BRAND STORY: O "Porquê" (UI Melhorada) --- */}
-        <div className="relative">
+        <div className="relative h-full flex flex-col transition-all duration-500 ease-in-out">
           <div className="flex items-center gap-4 mb-4">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/20"></div>
             <h2 className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">
@@ -87,8 +110,8 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
           <div
             onClick={() => setStoryOpen(!storyOpen)}
             className={`
-    relative overflow-hidden rounded-3xl border transition-all duration-500 cursor-pointer
-    ${storyOpen ? "bg-navy-light/30 border-primary/50" : "bg-navy-light/40 border-white/5 hover:bg-navy-light/50"}
+    relative overflow-hidden rounded-3xl border transition-all duration-500 cursor-pointer flex-1 hover:shadow-xl hover:shadow-primary/5
+    ${storyOpen ? "bg-navy-light/30 border-primary/50" : "bg-navy-light/40 border-white/5 hover:bg-navy-light/50 hover:border-white/15"}
   `}
           >
             {/* Cabeçalho do Card */}
@@ -104,12 +127,12 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
                 </div>
               </div>
 
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">
                 Mais que um logo. <br />
                 <span className="text-primary">Um propósito.</span>
               </h3>
 
-              <p className="text-md text-white/70 leading-relaxed">
+              <p className="text-md lg:text-base text-white/70 leading-relaxed">
                 {brandStory.intro}
               </p>
             </div>
@@ -165,6 +188,8 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
           </div>
         </div>
 
+        </div>{/* End of lg:grid 2-col wrapper */}
+
         {/* --- 3. COMO FUNCIONA (Botões de Navegação) --- */}
         <div className="mb-8">
           <div className="grid grid-cols-3 gap-3">
@@ -198,10 +223,10 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
                 </div>
 
                 <div className="relative z-10">
-                  <p className="font-bold text-xs text-white mb-1 group-hover:text-primary transition-colors">
+                  <p className="font-bold text-xs lg:text-lg text-white mb-1 group-hover:text-primary transition-colors">
                     {step.title}
                   </p>
-                  <p className="text-[10px] text-white/40 leading-tight group-hover:text-white/60 transition-colors">
+                  <p className="text-[10px] lg:text-sm text-white/40 leading-tight group-hover:text-white/60 transition-colors">
                     {step.desc}
                   </p>
                 </div>

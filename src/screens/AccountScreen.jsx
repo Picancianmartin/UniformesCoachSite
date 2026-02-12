@@ -4,6 +4,7 @@ import {
   Package,
   User,
   LogOut,
+  ChevronLeft,
   ChevronRight,
   LogIn,
   ShieldCheck,
@@ -265,25 +266,36 @@ Minha dúvida é:
   };
 
   return (
-    <div className="min-h-screen bg-navy pb-24 animate-fade-in font-outfit text-white relative">
+    <div className="min-h-screen bg-navy pb-24 lg:pb-8 animate-fade-in font-outfit text-white relative">
       {/* HEADER */}
-      <div className="pt-6 px-6 pb-6 border-b border-white/5 bg-navy/80 backdrop-blur-xl sticky top-0 z-20 flex justify-between items-center">
-        <div>
-          {/* AQUI: Adicionei uma div flex para alinhar o logo com o título */}
-          <div className="flex items-center align-middle gap-3">
-            <img
-              src={logoAzul}
-              alt="Logo"
-              className="h-14 w-auto object-contain"
-            />
-            <h1 className="text-2xl font-bold text-white">Minha Conta</h1>
-          </div>
+      <div className="pt-6 px-6 lg:px-10 pb-6 border-b border-white/5 bg-navy/80 backdrop-blur-xl sticky top-0 z-20 flex justify-between items-center lg:pl-24">
+        <div className="flex items-center gap-3">
+          {/* Botão Voltar */}
+          <button
+            onClick={() => onNavigate("home")}
+            className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center text-white hover:bg-white/10 active:scale-95 transition-all"
+            aria-label="Voltar"
+          >
+            <ChevronLeft size={24} />
+          </button>
 
-          <p className="text-white/50 text-sm text-center">
-            {isLoggedIn
-              ? `Olá, ${user?.name ? user.name.split(" ")[0] : isAdmin && user?.email ? user.email.split("@")[0].charAt(0).toUpperCase() + user.email.split("@")[0].slice(1) : "Admin"}!`
-              : "Identifique-se"}
-          </p>
+          <div>
+            {/* AQUI: Adicionei uma div flex para alinhar o logo com o título */}
+            <div className="flex items-center align-middle gap-3">
+              <img
+                src={logoAzul}
+                alt="Logo"
+                className="h-14 w-auto object-contain"
+              />
+              <h1 className="text-2xl font-bold text-white">Minha Conta</h1>
+            </div>
+
+            <p className="text-white/50 text-sm">
+              {isLoggedIn
+                ? `Olá, ${user?.name ? user.name.split(" ")[0] : isAdmin && user?.email ? user.email.split("@")[0].charAt(0).toUpperCase() + user.email.split("@")[0].slice(1) : "Admin"}!`
+                : "Identifique-se"}
+            </p>
+          </div>
         </div>
 
         {isLoggedIn && (
@@ -296,7 +308,7 @@ Minha dúvida é:
         )}
       </div>
 
-      <div className="px-6 space-y-8 mt-6">
+      <div className="px-6 lg:px-8 lg:max-w-5xl lg:mx-auto space-y-8 mt-6">
         {/* LOGIN CARD */}
         {!isLoggedIn ? (
           <button

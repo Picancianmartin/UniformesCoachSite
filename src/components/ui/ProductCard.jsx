@@ -65,7 +65,7 @@ const ProductCard = ({ product, onClick }) => {
   };
 
   return (
-    <div className="bg-navy-light rounded-2xl overflow-hidden border border-white/5 shadow-lg flex flex-col h-full group animate-fade-in relative">
+    <div className="bg-navy-light rounded-2xl overflow-hidden border border-white/5 shadow-lg flex flex-col h-full group animate-fade-in relative hover:border-white/15 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300">
       {/* --- ÁREA DA IMAGEM --- */}
       <div className="relative aspect-[4/5] bg-navy">
         {/* Scroll das Imagens */}
@@ -119,7 +119,8 @@ const ProductCard = ({ product, onClick }) => {
         <div className="absolute top-2 left-2 flex flex-col gap-1.5 z-20 items-start pointer-events-none">
           {/* TAG DE STATUS (Sempre mostra uma) */}
           {isProntaEntrega ? (
-            <span className="text-[9px] font-bold uppercase bg-emerald-500 text-white px-2 py-1 rounded shadow-md border border-white/10">
+            <span className="text-[10px] font-bold uppercase bg-emerald-500 text-white px-2.5 py-1.5 rounded shadow-md border border-white/10 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               Pronta Entrega
             </span>
           ) : (
@@ -150,19 +151,19 @@ const ProductCard = ({ product, onClick }) => {
           className="cursor-pointer flex-1"
         >
           <div className="flex justify-between items-start mb-1">
-            <h3 className="text-sm font-bold text-white leading-tight line-clamp-2">
+            <h3 className="text-sm lg:text-base font-bold text-white leading-tight line-clamp-2">
               {name}
             </h3>
           </div>
 
-          <p className="text-xs text-white/50 mb-3 line-clamp-1">
+          <p className="text-xs lg:text-sm text-white/50 mb-3 line-clamp-1">
             Coleção: <span className="text-white/70">{collection}</span>
           </p>
         </div>
 
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
           <div className="flex flex-col">
-            <span className="text-base font-bold text-primary">
+            <span className="text-base lg:text-lg font-bold text-primary">
               R$ {Number(price).toFixed(0)}
             </span>
           </div>

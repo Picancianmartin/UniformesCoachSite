@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import "./styles/index.css";
 import { supabase } from "./services/supabase";
 import BottomNav from "./components/BottomNav";
+import DesktopSidebar from "./components/DesktopSidebar";
+import useSwipeBack from "./hooks/useSwipeBack";
 
 // Componentes e Telas
 import Toast from "./components/Toast";
@@ -37,6 +39,17 @@ export default function App() {
       return adminList.includes(email.toLowerCase());
     };
 
+    // Helper: generate display name from email (e.g. "david.sousa@..." → "David Sousa")
+    const nameFromEmail = (email) => {
+      if (!email) return "";
+      const local = email.split("@")[0] || email;
+      return local
+        .split(/[._-]/)
+        .filter((part) => part.length > 0)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+    };
+
     // 2. Função para verificar a sessão atual (IMPORTANTE para quando der F5 na página)
     const checkInitialSession = async () => {
       const {
@@ -48,7 +61,7 @@ export default function App() {
       setIsAdmin(isUserAdmin);
 
       if (isUserAdmin && email) {
-        setUser({ email: email, name: "" });
+        setUser({ email: email, name: nameFromEmail(email) });
       }
     };
 
@@ -64,7 +77,7 @@ export default function App() {
 
         // Atualiza o objeto user para os Admins (usado na AccountScreen para o nome)
         if (isUserAdmin && email) {
-          setUser({ email: email, name: "" });
+          setUser({ email: email, name: nameFromEmail(email) });
         }
 
         // Lógica de Recuperação de Senha
@@ -288,15 +301,33 @@ export default function App() {
     );
   };
 
+  // --- Swipe-back gesture: navigate back from deeper screens ---
+  const screenBackMap = {
+    product: "catalog",
+    cart: "catalog",
+    payment: "cart",
+    signup: "home",
+    account: "home",
+    confirmation: "home",
+    "reset-password": "home",
+    admin: "home",
+  };
+  useSwipeBack(
+    screenBackMap[screen]
+      ? () => setScreen(screenBackMap[screen])
+      : null,
+  );
+
   // --- 4. Roteamento de Telas ---
   const screens = {
-    home: <HomeScreen onNavigate={setScreen} cartItems={cart} />,
+    home: <HomeScreen onNavigate={setScreen} cartItems={cart} user={user} />,
 
     catalog: (
       <CatalogScreen
         onNavigate={setScreen}
         onSelectProduct={handleProductSelect}
         cartItems={cart}
+        user={user}
       />
     ),
 
@@ -364,7 +395,16 @@ export default function App() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
       </div>
 
-      <div className="relative z-10 max-w-[428px] mx-auto min-h-screen pb-16">
+      {/* Desktop Sidebar (hidden on mobile) */}
+      {screen !== "signup" && (
+        <DesktopSidebar
+          active={screen === "product" ? "catalog" : screen === "admin" ? "account" : screen}
+          onNavigate={setScreen}
+          cartCount={cart.length}
+        />
+      )}
+
+      <div className="relative z-10 max-w-[428px] lg:max-w-full lg:pl-24 mx-auto min-h-screen pb-16 lg:pb-0">
         <Toast show={toast.show} message={toast.message} icon={toast.icon} />
         {screens[screen]}
         <Footer

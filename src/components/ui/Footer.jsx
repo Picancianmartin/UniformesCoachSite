@@ -14,7 +14,7 @@ export default function Footer({
     <footer
       className={`w-full  border-t border-white/10 bg-navy/70 backdrop-blur-xl ${className}`}
     >
-      <div className="max-w-[428px] mx-auto px-5 py-5">
+      <div className="max-w-[428px] lg:max-w-5xl mx-auto px-5 py-5">
         <div className="flex items-center justify-between gap-3">
           <small className="text-[11px] text-white/45 tracking-wide">
             © {year} {brandName}
