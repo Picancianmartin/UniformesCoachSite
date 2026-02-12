@@ -52,9 +52,9 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
 
       <div className="pt-24 px-5 lg:px-8 lg:max-w-5xl lg:mx-auto space-y-10 animate-fade-in">
         {/* --- Desktop: Hero + Brand Story side-by-side --- */}
-        <div className="lg:grid lg:grid-cols-2 lg:gap-8 space-y-10 lg:space-y-0">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-stretch space-y-10 lg:space-y-0">
         {/* --- 1. HERO SECTION: Foco na Ação --- */}
-        <div className="relative overflow-hidden rounded-[2rem] bg-white/5 border border-white/10 p-8 text-center group">
+        <div className="relative overflow-hidden rounded-[2rem] bg-white/5 border border-white/10 p-8 text-center group h-full hover:bg-white/[0.07] hover:border-white/20 hover:shadow-xl hover:shadow-primary/5 transition-all duration-500">
           {/* Efeitos de Fundo */}
           <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none mix-blend-overlay"></div>
           <div className="absolute top-0 right-0 w-40 h-40 bg-primary/30 blur-[80px] rounded-full pointer-events-none" />
@@ -81,7 +81,7 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
         </div>
 
         {/* --- 2. BRAND STORY: O "Porquê" (UI Melhorada) --- */}
-        <div className="relative">
+        <div className="relative h-full flex flex-col">
           <div className="flex items-center gap-4 mb-4">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/20"></div>
             <h2 className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">
@@ -93,8 +93,8 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
           <div
             onClick={() => setStoryOpen(!storyOpen)}
             className={`
-    relative overflow-hidden rounded-3xl border transition-all duration-500 cursor-pointer
-    ${storyOpen ? "bg-navy-light/30 border-primary/50" : "bg-navy-light/40 border-white/5 hover:bg-navy-light/50"}
+    relative overflow-hidden rounded-3xl border transition-all duration-500 cursor-pointer flex-1 hover:shadow-xl hover:shadow-primary/5
+    ${storyOpen ? "bg-navy-light/30 border-primary/50" : "bg-navy-light/40 border-white/5 hover:bg-navy-light/50 hover:border-white/15"}
   `}
           >
             {/* Cabeçalho do Card */}
@@ -110,12 +110,12 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
                 </div>
               </div>
 
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">
                 Mais que um logo. <br />
                 <span className="text-primary">Um propósito.</span>
               </h3>
 
-              <p className="text-md text-white/70 leading-relaxed">
+              <p className="text-md lg:text-base text-white/70 leading-relaxed">
                 {brandStory.intro}
               </p>
             </div>

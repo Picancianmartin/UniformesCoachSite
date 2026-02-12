@@ -78,7 +78,7 @@ const Header = ({
           )}
 
           {title && (
-            <h1 className="text-sm font-bold text-white/90 uppercase tracking-wider truncate max-w-[150px] lg:max-w-none text-center">
+            <h1 className="text-sm lg:text-base font-bold text-white/90 uppercase tracking-wider truncate max-w-[150px] lg:max-w-none text-center">
               {title}
             </h1>
           )}
@@ -106,7 +106,7 @@ const Header = ({
           {showAccount && (
             <button
               onClick={onAccount}
-              className="w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white text-xs font-bold hover:bg-white/20 active:scale-95 transition-all"
+              className="w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white text-[13px] font-bold hover:bg-white/20 active:scale-95 transition-all"
               aria-label="Minha Conta"
             >
               {getAvatarText()}

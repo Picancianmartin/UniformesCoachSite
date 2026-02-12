@@ -10,9 +10,9 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
   ];
 
   return (
-    <aside className="hidden lg:flex fixed top-0 left-0 h-screen w-20 z-50 flex-col items-center py-8 bg-navy/90 backdrop-blur-xl border-r border-white/10">
+    <aside className="hidden lg:flex fixed top-0 left-0 h-screen w-20 z-50 flex-col items-center py-8 bg-navy/95 backdrop-blur-2xl border-r border-white/10 shadow-[4px_0_24px_rgba(0,0,0,0.3)]">
       {/* Logo / Brand Mark */}
-      <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-bold text-sm mb-10">
+      <div className="w-11 h-11 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-primary font-bold text-sm mb-10 shadow-neon">
         C
       </div>
 
@@ -30,15 +30,15 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
                 relative w-16 h-16 rounded-2xl flex flex-col items-center justify-center gap-1.5
                 transition-all duration-300 group
                 ${isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-white/40 hover:text-white/70 hover:bg-white/5"
+                  ? "bg-primary/15 text-primary shadow-[0_0_20px_rgba(0,123,186,0.15)]"
+                  : "text-white/40 hover:text-white/80 hover:bg-white/5"
                 }
               `}
               aria-label={item.label}
             >
               {/* Active indicator bar */}
               {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full shadow-[0_0_12px_rgba(0,123,186,0.5)]" />
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-9 bg-primary rounded-r-full shadow-[0_0_16px_rgba(0,123,186,0.6)]" />
               )}
 
               <div className="relative">
