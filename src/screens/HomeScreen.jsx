@@ -53,29 +53,46 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
       <div className="pt-24 px-5 lg:px-8 lg:max-w-6xl lg:mx-auto space-y-10 animate-fade-in">
         {/* --- Desktop: Hero + Brand Story side-by-side --- */}
         <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-stretch space-y-10 lg:space-y-0">
-        {/* --- 1. HERO SECTION: Foco na Ação --- */}
-        <div className="relative overflow-hidden rounded-[2rem] bg-white/5 border border-white/10 p-8 text-center group h-full hover:bg-white/[0.07] hover:border-white/20 hover:shadow-xl hover:shadow-primary/5 transition-all duration-500">
-          {/* Efeitos de Fundo */}
-          <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none mix-blend-overlay"></div>
-          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/30 blur-[80px] rounded-full pointer-events-none" />
+        {/* --- 1. HERO SECTION: Banner Premium --- */}
+        <div
+          onClick={() => onNavigate("catalog")}
+          className="relative overflow-hidden rounded-3xl min-h-[220px] h-full group cursor-pointer border border-white/10 hover:border-white/20 transition-all duration-500"
+        >
+          {/* Background layers */}
+          <div className="absolute inset-0 bg-gradient-to-br from-navy-light via-[#041a4d] to-navy transition-transform duration-700 group-hover:scale-105" />
+          <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.04] pointer-events-none" />
+          <div className="absolute -top-10 -right-10 w-60 h-60 bg-primary/25 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-accent/15 blur-[80px] rounded-full pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest">
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/40 to-transparent pointer-events-none" />
+
+          {/* Content */}
+          <div className="relative z-10 flex flex-col justify-end h-full p-8 lg:p-10">
+            {/* Badge */}
+            <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-primary text-[10px] font-bold uppercase tracking-widest w-fit">
               <Sparkles size={10} /> Nova Coleção 2026
             </div>
 
-            <h1 className="text-xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-              FAÇA PARTE <br />{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-                DESSE TIME
-              </span>
+            {/* Title hierarchy */}
+            <p className="text-sm tracking-widest uppercase text-gray-300 font-medium mb-1">
+              Faça parte
+            </p>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-none mb-3">
+              DESSE TIME
             </h1>
 
+            {/* Subtitle */}
+            <p className="text-sm text-gray-200/80 max-w-xs mb-6 leading-relaxed">
+              Vista a camisa dos campeões.
+            </p>
+
+            {/* Glass CTA button */}
             <button
-              onClick={() => onNavigate("catalog")}
-              className="w-full lg:w-auto lg:px-12 py-3 bg-white text-navy rounded-2xl font-bold text-md hover:scale-[1.02] active:scale-95 transition-all  flex items-center justify-center gap-3"
+              onClick={(e) => { e.stopPropagation(); onNavigate("catalog"); }}
+              className="w-fit px-8 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-2xl font-bold text-sm flex items-center gap-3 hover:bg-white hover:text-navy active:scale-95 transition-all duration-300 shadow-lg shadow-black/10"
             >
-              Acessar Loja <ArrowRight size={18} />
+              Acessar Loja <ArrowRight size={16} />
             </button>
           </div>
         </div>
