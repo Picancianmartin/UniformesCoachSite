@@ -50,7 +50,7 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
         user={user}
       />
 
-      <div className="pt-24 px-5 lg:px-8 lg:max-w-5xl lg:mx-auto space-y-10 animate-fade-in">
+      <div className="pt-24 px-5 lg:px-8 lg:max-w-6xl lg:mx-auto space-y-10 animate-fade-in">
         {/* --- Desktop: Hero + Brand Story side-by-side --- */}
         <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-stretch space-y-10 lg:space-y-0">
         {/* --- 1. HERO SECTION: Foco na Ação --- */}

@@ -39,6 +39,17 @@ export default function App() {
       return adminList.includes(email.toLowerCase());
     };
 
+    // Helper: generate display name from email (e.g. "david.sousa@..." → "David Sousa")
+    const nameFromEmail = (email) => {
+      if (!email) return "";
+      const local = email.split("@")[0] || email;
+      return local
+        .split(/[._-]/)
+        .filter((part) => part.length > 0)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+    };
+
     // 2. Função para verificar a sessão atual (IMPORTANTE para quando der F5 na página)
     const checkInitialSession = async () => {
       const {
@@ -50,7 +61,7 @@ export default function App() {
       setIsAdmin(isUserAdmin);
 
       if (isUserAdmin && email) {
-        setUser({ email: email, name: "" });
+        setUser({ email: email, name: nameFromEmail(email) });
       }
     };
 
@@ -66,7 +77,7 @@ export default function App() {
 
         // Atualiza o objeto user para os Admins (usado na AccountScreen para o nome)
         if (isUserAdmin && email) {
-          setUser({ email: email, name: "" });
+          setUser({ email: email, name: nameFromEmail(email) });
         }
 
         // Lógica de Recuperação de Senha
@@ -385,9 +396,9 @@ export default function App() {
       </div>
 
       {/* Desktop Sidebar (hidden on mobile) */}
-      {screen !== "signup" && screen !== "admin" && (
+      {screen !== "signup" && (
         <DesktopSidebar
-          active={screen === "product" ? "catalog" : screen}
+          active={screen === "product" ? "catalog" : screen === "admin" ? "account" : screen}
           onNavigate={setScreen}
           cartCount={cart.length}
         />

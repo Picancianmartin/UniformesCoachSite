@@ -113,7 +113,7 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
                   <img
                     src={img}
                     alt={`${product.name} ${index}`}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                     loading="lazy"
                   />
                   {/* Gradiente (Mobile only — on desktop the info is beside the image) */}
