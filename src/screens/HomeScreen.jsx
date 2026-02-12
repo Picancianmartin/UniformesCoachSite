@@ -70,7 +70,7 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
           {/* Content — centered vertically and horizontally */}
           <div className="relative z-10 flex flex-col justify-center items-center text-center h-full p-8 lg:p-10">
             {/* Badge */}
-            <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-primary text-[10px] font-bold uppercase tracking-widest w-fit">
+            <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-primary text-[10px] lg:text-sm font-bold uppercase tracking-widest w-fit">
               <Sparkles size={10} /> Nova Coleção 2026
             </div>
 
@@ -90,7 +90,7 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
             {/* Glass CTA button */}
             <button
               onClick={(e) => { e.stopPropagation(); onNavigate("catalog"); }}
-              className="w-fit px-8 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-2xl font-bold text-sm flex items-center gap-3 hover:bg-white hover:text-navy active:scale-95 transition-all duration-300 shadow-lg shadow-black/10"
+              className="w-fit px-8 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-2xl font-bold text-sm lg:text-lg flex items-center gap-3 hover:bg-white hover:text-navy active:scale-95 transition-all duration-300 shadow-lg shadow-black/10"
             >
               Acessar Loja <ArrowRight size={16} />
             </button>
@@ -223,10 +223,10 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
                 </div>
 
                 <div className="relative z-10">
-                  <p className="font-bold text-xs text-white mb-1 group-hover:text-primary transition-colors">
+                  <p className="font-bold text-xs lg:text-lg text-white mb-1 group-hover:text-primary transition-colors">
                     {step.title}
                   </p>
-                  <p className="text-[10px] text-white/40 leading-tight group-hover:text-white/60 transition-colors">
+                  <p className="text-[10px] lg:text-sm text-white/40 leading-tight group-hover:text-white/60 transition-colors">
                     {step.desc}
                   </p>
                 </div>
