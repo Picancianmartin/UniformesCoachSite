@@ -89,7 +89,8 @@ const ProductDetailScreen = ({ onNavigate, onAddToCart, product }) => {
       <button
         onClick={() => onNavigate("catalog")}
         className="fixed top-6 left-6 lg:left-[calc(5rem+1.5rem)] w-10 h-10 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all z-50"
-      >
+        aria-label="Voltar"
+      >{/* lg:left offset = sidebar width (5rem/80px) + spacing (1.5rem/24px) */}
         <ArrowLeft size={20} />
       </button>
 
