@@ -52,11 +52,11 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
 
       <div className="pt-24 px-5 lg:px-8 lg:max-w-6xl lg:mx-auto space-y-10 animate-fade-in">
         {/* --- Desktop: Hero + Brand Story side-by-side --- */}
-        <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-stretch space-y-10 lg:space-y-0">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-stretch space-y-10 lg:space-y-0 transition-all duration-500 ease-in-out">
         {/* --- 1. HERO SECTION: Banner Premium --- */}
         <div
           onClick={() => onNavigate("catalog")}
-          className="relative overflow-hidden rounded-3xl min-h-[220px] h-full group cursor-pointer border border-white/10 hover:border-white/20 transition-all duration-500"
+          className="relative overflow-hidden rounded-3xl min-h-[220px] h-full group cursor-pointer border border-white/10 hover:border-white/20 transition-all duration-500 ease-in-out"
         >
           {/* Background layers */}
           <div className="absolute inset-0 bg-gradient-to-br from-navy-light via-[#041a4d] to-navy transition-transform duration-700 group-hover:scale-105" />
@@ -67,8 +67,8 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
           {/* Dark overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/40 to-transparent pointer-events-none" />
 
-          {/* Content */}
-          <div className="relative z-10 flex flex-col justify-end h-full p-8 lg:p-10">
+          {/* Content — centered vertically and horizontally */}
+          <div className="relative z-10 flex flex-col justify-center items-center text-center h-full p-8 lg:p-10">
             {/* Badge */}
             <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-primary text-[10px] font-bold uppercase tracking-widest w-fit">
               <Sparkles size={10} /> Nova Coleção 2026
@@ -98,7 +98,7 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
         </div>
 
         {/* --- 2. BRAND STORY: O "Porquê" (UI Melhorada) --- */}
-        <div className="relative h-full flex flex-col">
+        <div className="relative h-full flex flex-col transition-all duration-500 ease-in-out">
           <div className="flex items-center gap-4 mb-4">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/20"></div>
             <h2 className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">
