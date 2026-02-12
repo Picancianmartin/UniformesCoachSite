@@ -184,6 +184,39 @@ const SignupScreen = ({ onNavigate, onLogin, user, cartLength }) => {
     setLoading(false);
   };
 
+  // --- LÓGICA DE RECUPERAÇÃO DE SENHA ---
+  const handleForgotPassword = async () => {
+    if (!adminData.email.trim()) {
+      setErrors({ email: true });
+      return showFeedback(
+        "Digite seu e-mail para recuperar a senha.",
+        "warning",
+      );
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        adminData.email,
+        {
+          // Redireciona o usuário de volta para o seu site para trocar a senha
+          redirectTo: `${window.location.origin}/reset-password`,
+        },
+      );
+
+      if (error) throw error;
+
+      showFeedback(
+        "E-mail de recuperação enviado! Verifique sua caixa de entrada.",
+        "success",
+      );
+    } catch (error) {
+      console.error("Erro recuperação:", error);
+      showFeedback("Erro ao enviar e-mail de recuperação.", "error");
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-navy p-6 animate-fade-in flex flex-col font-outfit text-white relative">
       <Toast
@@ -252,7 +285,7 @@ const SignupScreen = ({ onNavigate, onLogin, user, cartLength }) => {
                 <input
                   type="text"
                   className={getInputClasses(errors.name, false)}
-                  placeholder="Ex: Ana Silva"
+                  placeholder="Nome Sobrenome"
                   value={clientData.name}
                   onChange={(e) => {
                     setClientData({ ...clientData, name: e.target.value });
@@ -379,6 +412,16 @@ const SignupScreen = ({ onNavigate, onLogin, user, cartLength }) => {
                   className={getIconClass(errors.password, true)}
                   size={20}
                 />
+              </div>
+              {/* BOTÃO ESQUECI MINHA SENHA - ADICIONE AQUI */}
+              <div className="flex justify-end mt-2">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs font-bold text-red-400/70 hover:text-red-400 transition-colors"
+                >
+                  Esqueci minha senha
+                </button>
               </div>
             </div>
 

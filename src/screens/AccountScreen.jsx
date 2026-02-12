@@ -281,7 +281,7 @@ Minha dúvida é:
 
           <p className="text-white/50 text-sm text-center">
             {isLoggedIn
-              ? `Olá, ${user.name ? user.name.split(" ")[0] : "Cliente"}!`
+              ? `Olá, ${user?.name ? user.name.split(" ")[0] : isAdmin && user?.email ? user.email.split("@")[0].charAt(0).toUpperCase() + user.email.split("@")[0].slice(1) : "Admin"}!`
               : "Identifique-se"}
           </p>
         </div>
@@ -322,24 +322,28 @@ Minha dúvida é:
           <div className="glass-panel p-6 rounded-3xl relative overflow-hidden space-y-6 border border-white/10">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-primary to-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-xl shadow-primary/20 transform rotate-3">
-                {/* LÓGICA DO ÍCONE: Se tiver nome, usa a inicial. Se for Admin, usa 'A'. Senão, ícone padrão */}
+                {/* Ícone: Inicial do nome ou inicial do e-mail para Admins */}
                 {user?.name ? (
                   user.name.charAt(0).toUpperCase()
-                ) : isAdmin ? (
-                  "A"
+                ) : isAdmin && user?.email ? (
+                  user.email.charAt(0).toUpperCase()
                 ) : (
                   <User />
                 )}
               </div>
               <div>
-                {/* LÓGICA DO NOME: Mostra nome do cliente OU "Administrador" */}
                 <h2 className="font-bold text-xl text-white">
-                  {user?.name || (isAdmin ? "Administrador" : "Cliente")}
+                  {/* Exibe o nome do cliente ou extrai o nome do e-mail do sócio */}
+                  {user?.name ||
+                    (isAdmin && user?.email
+                      ? user.email.split("@")[0].charAt(0).toUpperCase() +
+                        user.email.split("@")[0].slice(1)
+                      : "Cliente")}
                 </h2>
 
-                {/* LÓGICA DO TELEFONE: Mostra telefone OU aviso de restrito */}
                 <p className="text-white/50 text-xs font-mono bg-white/5 px-2 py-1 rounded inline-block mt-1">
-                  {user?.phone || (isAdmin ? "Acesso Restrito" : "")}
+                  {/* Se for Admin, mostra o e-mail logado. Se não, o telefone. */}
+                  {isAdmin ? user?.email : user?.phone || "Acesso Identificado"}
                 </p>
               </div>
             </div>
@@ -347,13 +351,11 @@ Minha dúvida é:
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={onLogout}
-                // ADICIONEI: col-span-2 se NÃO for admin (para o botão ocupar tudo sozinho)
                 className={`py-3 px-4 rounded-xl border border-white/10 bg-white/5 text-white/60 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 text-xs font-bold flex items-center justify-center gap-2 transition-all ${!isAdmin ? "col-span-2" : ""}`}
               >
                 <LogOut size={16} /> Sair
               </button>
 
-              {/* BOTÃO ADMIN: Só aparece se isAdmin for verdadeiro */}
               {isAdmin && (
                 <button
                   onClick={() => onNavigate("admin")}

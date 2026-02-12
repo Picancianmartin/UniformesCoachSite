@@ -15,6 +15,7 @@ import ConfirmationScreen from "./screens/ConfirmationScreen";
 import AccountScreen from "./screens/AccountScreen";
 import AdminScreen from "./screens/AdminScreen";
 import Footer from "./components/ui/Footer";
+import ResetPasswordScreen from "./screens/ResetPassworScreen";
 
 export default function App() {
   const [screen, setScreen] = useState("home");
@@ -22,28 +23,54 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(true);
 
   useEffect(() => {
-    // 1. Função para verificar a sessão atual
-    const checkSession = async () => {
+    // 1. Função auxiliar robusta (ignora espaços e case sensitive)
+    const checkIsAdmin = (email) => {
+      if (!email) return false;
+      // Aceita tanto VITE_ADMIN_EMAIL quanto VITE_ADMIN_EMAILS para evitar erros
+      const adminRawList =
+        import.meta.env.VITE_ADMIN_EMAIL ||
+        import.meta.env.VITE_ADMIN_EMAILS ||
+        "";
+      const adminList = adminRawList
+        .split(",")
+        .map((e) => e.trim().toLowerCase());
+      return adminList.includes(email.toLowerCase());
+    };
+
+    // 2. Função para verificar a sessão atual (IMPORTANTE para quando der F5 na página)
+    const checkInitialSession = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-
-      // 2. Verifica se existe usuário E se o email é o do admin
-      // (Ou você pode verificar session.user.user_metadata.role === 'admin')
-      const isUserAdmin =
-        session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL;
+      const email = session?.user?.email;
+      const isUserAdmin = checkIsAdmin(email);
 
       setIsAdmin(isUserAdmin);
+
+      if (isUserAdmin && email) {
+        setUser({ email: email, name: "" });
+      }
     };
 
-    checkSession();
+    checkInitialSession();
 
-    // 3. Opcional: Escutar mudanças (login/logout) em tempo real
+    // 3. Ouvinte de mudanças de estado (Login, Logout, Recovery)
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        const isUserAdmin =
-          session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL;
+      async (event, session) => {
+        const email = session?.user?.email;
+        const isUserAdmin = checkIsAdmin(email);
+
         setIsAdmin(isUserAdmin);
+
+        // Atualiza o objeto user para os Admins (usado na AccountScreen para o nome)
+        if (isUserAdmin && email) {
+          setUser({ email: email, name: "" });
+        }
+
+        // Lógica de Recuperação de Senha
+        if (event === "PASSWORD_RECOVERY") {
+          setScreen("reset-password");
+        }
       },
     );
 
@@ -82,30 +109,25 @@ export default function App() {
     showToast(`Bem-vindo, ${userData.name.split(" ")[0]}!`, "👋");
   };
 
-  // --- A. LOGOUT DO CLIENTE (Apenas app) ---
-  const handleClientLogout = () => {
-    // 1. Limpa dados visuais
-    setUser({ name: "", phone: "" });
+  // --- LOGOUT UNIVERSAL (Limpa Tudo) ---
+  const handleFullLogout = async () => {
+    try {
+      // 1. Tenta desconectar do Supabase (Garante que o Admin saia)
+      await supabase.auth.signOut();
+    } catch (error) { 
+      console.error("Erro ao sair:", error);
+    }
+
+    // 2. Remove a memória do cliente (Garante que o Cliente saia)
+    localStorage.removeItem("coach_user");
+
+    // 3. Limpa estados do React visualmente
+    setUser(null);
+    setIsAdmin(false);
     setCart([]);
-    setOrders([]);
 
-    // 2. Remove apenas a memória do cliente
-    localStorage.removeItem("coach_user");
-
-    // 3. Navega para home (SEM recarregar a página, SEM deslogar Admin)
-    showToast("Você saiu da sua conta.", "info");
-    setScreen("home");
-  };
-
-  // --- B. LOGOUT DO ADMIN (Apenas Supabase) ---
-  const handleAdminLogout = async () => {
-    // 1. Desloga a sessão segura do Supabase
-    await supabase.auth.signOut();
-
-    // 2. Opcional: Limpa o usuário comum também para garantir
-    localStorage.removeItem("coach_user");
-
-    // 3. Força o recarregamento total da página (Segurança Máxima)
+    // 4. O FINALIZADOR: Força o recarregamento da página.
+    // Isso garante que não sobre "lixo" na memória e volta para a tela inicial zerada.
     window.location.href = "/";
   };
 
@@ -124,6 +146,22 @@ export default function App() {
     }
     return data;
   };
+
+  useEffect(() => {
+    // Escuta eventos de autenticação
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event) => {
+        // Se o evento for "PASSWORD_RECOVERY", manda para a tela de reset
+        if (event === "PASSWORD_RECOVERY") {
+          setScreen("reset-password");
+        }
+      },
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (user.phone) {
@@ -322,12 +360,14 @@ export default function App() {
         onNavigate={setScreen}
         user={user}
         orders={orders}
-        onLogout={handleClientLogout} // <--- Alterado para usar a nova função
+        onLogout={handleFullLogout} // <--- Alterado para usar a nova função
         isAdmin={isAdmin}
       />
     ),
 
-    admin: <AdminScreen onNavigate={setScreen} onLogout={handleAdminLogout} />,
+    "reset-password": <ResetPasswordScreen onNavigate={setScreen} />,
+
+    admin: <AdminScreen onNavigate={setScreen} onLogout={handleFullLogout} />,
   };
 
   return (
@@ -360,7 +400,6 @@ export default function App() {
             cartCount={cart.length}
           />
         )}
-    
     </div>
   );
 }
