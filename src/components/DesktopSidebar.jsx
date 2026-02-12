@@ -17,7 +17,7 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
       </div>
 
       {/* Nav Items */}
-      <nav className="flex-1 flex flex-col items-center gap-2">
+      <nav className="flex-1 flex flex-col items-center gap-4">
         {items.map((item) => {
           const isActive = active === item.id;
           const Icon = item.icon;
@@ -27,7 +27,7 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={`
-                relative w-14 h-14 rounded-2xl flex flex-col items-center justify-center gap-1
+                relative w-16 h-16 rounded-2xl flex flex-col items-center justify-center gap-1.5
                 transition-all duration-300 group
                 ${isActive
                   ? "bg-primary/10 text-primary"
@@ -43,7 +43,7 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
 
               <div className="relative">
                 <Icon
-                  size={22}
+                  size={26}
                   strokeWidth={isActive ? 2.5 : 2}
                   className={`transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-105"}`}
                 />

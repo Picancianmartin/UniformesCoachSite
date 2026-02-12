@@ -119,7 +119,8 @@ const ProductCard = ({ product, onClick }) => {
         <div className="absolute top-2 left-2 flex flex-col gap-1.5 z-20 items-start pointer-events-none">
           {/* TAG DE STATUS (Sempre mostra uma) */}
           {isProntaEntrega ? (
-            <span className="text-[9px] font-bold uppercase bg-emerald-500 text-white px-2 py-1 rounded shadow-md border border-white/10">
+            <span className="text-[10px] font-bold uppercase bg-emerald-500 text-white px-2.5 py-1.5 rounded shadow-md border border-white/10 flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               Pronta Entrega
             </span>
           ) : (

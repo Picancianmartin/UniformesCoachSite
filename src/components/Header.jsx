@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronLeft, ShoppingBag, User } from "lucide-react";
+import { ChevronLeft, ShoppingBag } from "lucide-react";
 import defaultLogo from "../assets/logodavid.png";
 
 const Header = ({
@@ -11,6 +11,8 @@ const Header = ({
   onCart,
   showAccount,
   onAccount,
+  onNavigate,
+  user,
   logoSrc,
   showLogo,
   // DEFINA AQUI O TAMANHO PADRÃO GERAL (Caso você esqueça de passar na tela)
@@ -18,9 +20,21 @@ const Header = ({
 }) => {
   const finalLogo = logoSrc || defaultLogo;
 
+  // Avatar logic: initials or "C"
+  const getAvatarText = () => {
+    if (user?.name) {
+      const parts = user.name.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return parts[0][0].toUpperCase();
+    }
+    return "C";
+  };
+
   return (
     <header className="fixed top-0 left-0 w-full z-40 bg-navy/90 backdrop-blur-xl border-b border-white/10 transition-all duration-300 lg:pl-20">
-      <div className="max-w-[428px] lg:max-w-6xl mx-auto px-5 h-16 grid grid-cols-[1fr_auto_1fr] items-center">
+      <div className="max-w-[428px] lg:max-w-5xl mx-auto px-5 h-16 grid grid-cols-[1fr_auto_1fr] items-center">
         {/* --- ESQUERDA (Voltar ou Logo Padrão) --- */}
         <div className="flex justify-start items-center gap-3">
           {showBack ? (
@@ -32,7 +46,11 @@ const Header = ({
               <ChevronLeft size={24} />
             </button>
           ) : (
-            <div className="flex items-center gap-3">
+            <button
+              onClick={() => onNavigate && onNavigate("home")}
+              className="flex items-center gap-3 cursor-pointer"
+              aria-label="Ir para Home"
+            >
               {finalLogo ? (
                 <img
                   src={finalLogo}
@@ -44,7 +62,7 @@ const Header = ({
                   COACH DAVID
                 </div>
               )}
-            </div>
+            </button>
           )}
         </div>
 
@@ -83,14 +101,14 @@ const Header = ({
             </button>
           )}
 
-          {/* Botão Perfil */}
+          {/* Avatar / Perfil */}
           {showAccount && (
             <button
               onClick={onAccount}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white/80 hover:bg-white/10 active:scale-95 transition-all"
+              className="w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white text-xs font-bold hover:bg-white/20 active:scale-95 transition-all"
               aria-label="Minha Conta"
             >
-              <User size={22} />
+              {getAvatarText()}
             </button>
           )}
           

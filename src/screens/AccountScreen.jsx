@@ -308,7 +308,7 @@ Minha dúvida é:
         )}
       </div>
 
-      <div className="px-6 lg:px-8 lg:max-w-6xl lg:mx-auto space-y-8 mt-6">
+      <div className="px-6 lg:px-8 lg:max-w-5xl lg:mx-auto space-y-8 mt-6">
         {/* LOGIN CARD */}
         {!isLoggedIn ? (
           <button

@@ -3,6 +3,7 @@ import "./styles/index.css";
 import { supabase } from "./services/supabase";
 import BottomNav from "./components/BottomNav";
 import DesktopSidebar from "./components/DesktopSidebar";
+import useSwipeBack from "./hooks/useSwipeBack";
 
 // Componentes e Telas
 import Toast from "./components/Toast";
@@ -289,15 +290,33 @@ export default function App() {
     );
   };
 
+  // --- Swipe-back gesture: navigate back from deeper screens ---
+  const screenBackMap = {
+    product: "catalog",
+    cart: "catalog",
+    payment: "cart",
+    signup: "home",
+    account: "home",
+    confirmation: "home",
+    "reset-password": "home",
+    admin: "home",
+  };
+  useSwipeBack(
+    screenBackMap[screen]
+      ? () => setScreen(screenBackMap[screen])
+      : null,
+  );
+
   // --- 4. Roteamento de Telas ---
   const screens = {
-    home: <HomeScreen onNavigate={setScreen} cartItems={cart} />,
+    home: <HomeScreen onNavigate={setScreen} cartItems={cart} user={user} />,
 
     catalog: (
       <CatalogScreen
         onNavigate={setScreen}
         onSelectProduct={handleProductSelect}
         cartItems={cart}
+        user={user}
       />
     ),
 

@@ -266,7 +266,7 @@ const SignupScreen = ({ onNavigate, onLogin, user, cartLength }) => {
 
         {/* === CLIENTE FORM === */}
         {activeTab === "client" && (
-          <div className="space-y-5 animate-fade-in">
+          <form onSubmit={(e) => { e.preventDefault(); handleClientSubmit(); }} className="space-y-5 animate-fade-in">
             <div className="text-center mb-4">
               <h2 className="text-xl font-bold">Olá! 👋</h2>
               <p className="text-sm text-white/50">
@@ -341,7 +341,7 @@ const SignupScreen = ({ onNavigate, onLogin, user, cartLength }) => {
             </div>
 
             <button
-              onClick={handleClientSubmit}
+              type="submit"
               disabled={loading}
               className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-all mt-4 flex items-center justify-center"
             >
@@ -353,12 +353,12 @@ const SignupScreen = ({ onNavigate, onLogin, user, cartLength }) => {
                 "Acessar Minha Conta"
               )}
             </button>
-          </div>
+          </form>
         )}
 
         {/* === ADMIN FORM === */}
         {activeTab === "admin" && (
-          <div className="space-y-5 animate-fade-in">
+          <form onSubmit={(e) => { e.preventDefault(); handleAdminSubmit(); }} className="space-y-5 animate-fade-in">
             <div className="text-center mb-4">
               <h2 className="text-xl font-bold text-red-400">
                 Acesso Restrito 🔒
@@ -426,7 +426,7 @@ const SignupScreen = ({ onNavigate, onLogin, user, cartLength }) => {
             </div>
 
             <button
-              onClick={handleAdminSubmit}
+              type="submit"
               disabled={loading}
               className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/20 active:scale-95 transition-all mt-4 flex items-center justify-center gap-2"
             >
@@ -438,7 +438,7 @@ const SignupScreen = ({ onNavigate, onLogin, user, cartLength }) => {
                 </>
               )}
             </button>
-          </div>
+          </form>
         )}
       </div>
     </div>

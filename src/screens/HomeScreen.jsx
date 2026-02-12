@@ -15,9 +15,11 @@ import {
 import Header from "../components/Header";
 import BottomNav from "../components/BottomNav";
 import logodavid from "../assets/logodavid.png";
+import useIsDesktop from "../hooks/useIsDesktop";
 
-const HomeScreen = ({ onNavigate, cartItems = [] }) => {
-  const [storyOpen, setStoryOpen] = useState(false);
+const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
+  const isDesktop = useIsDesktop();
+  const [storyOpen, setStoryOpen] = useState(isDesktop);
 
   // // Lista de produtos (Mantida)
   // const featuredProducts = [
@@ -44,9 +46,13 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
         onCart={() => onNavigate("cart")}
         showAccount
         onAccount={() => onNavigate("account")}
+        onNavigate={onNavigate}
+        user={user}
       />
 
-      <div className="pt-24 px-5 lg:px-8 lg:max-w-6xl lg:mx-auto space-y-10 animate-fade-in">
+      <div className="pt-24 px-5 lg:px-8 lg:max-w-5xl lg:mx-auto space-y-10 animate-fade-in">
+        {/* --- Desktop: Hero + Brand Story side-by-side --- */}
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 space-y-10 lg:space-y-0">
         {/* --- 1. HERO SECTION: Foco na Ação --- */}
         <div className="relative overflow-hidden rounded-[2rem] bg-white/5 border border-white/10 p-8 text-center group">
           {/* Efeitos de Fundo */}
@@ -164,6 +170,8 @@ const HomeScreen = ({ onNavigate, cartItems = [] }) => {
             {/* Efeito de Fundo quando aberto */}
           </div>
         </div>
+
+        </div>{/* End of lg:grid 2-col wrapper */}
 
         {/* --- 3. COMO FUNCIONA (Botões de Navegação) --- */}
         <div className="mb-8">

@@ -6,7 +6,7 @@ import BottomNav from "../components/BottomNav";
 import logoAzul from "../assets/logodavidD.png";
 import ProductCard from "../components/ui/ProductCard";
 
-const CatalogScreen = ({ onNavigate, onSelectProduct, cartItems = [] }) => {
+const CatalogScreen = ({ onNavigate, onSelectProduct, cartItems = [], user }) => {
   // Estado Unificado de Filtro (Botões)
   const [activeFilter, setActiveFilter] = useState({
     type: "reset",
@@ -133,9 +133,13 @@ const CatalogScreen = ({ onNavigate, onSelectProduct, cartItems = [] }) => {
         showBack={false}
         logoSrc={logoAzul}
         logoSize="h-12 w-auto ml-1.5"
+        showAccount
+        onAccount={() => onNavigate("account")}
+        onNavigate={onNavigate}
+        user={user}
       />
 
-      <div className="pt-24 px-5 lg:px-8 lg:max-w-6xl lg:mx-auto space-y-6">
+      <div className="pt-24 px-5 lg:px-8 lg:max-w-5xl lg:mx-auto space-y-6">
         {/* --- BARRA DE BUSCA --- */}
         <div className="flex gap-3 animate-fade-in">
           <div className="relative flex-1 group">

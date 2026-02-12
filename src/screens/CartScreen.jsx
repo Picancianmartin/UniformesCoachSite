@@ -49,10 +49,14 @@ const CartScreen = ({
         logoSize="h-12 w-auto ml-1.5" // Tamanho maior para o logo no centro
         showBack={true}
         onBack={() => onNavigate("catalog")}
+        showAccount
+        onAccount={() => onNavigate("account")}
+        onNavigate={onNavigate}
+        user={user}
       />
 
       {/* Container com Scroll */}
-      <div className="flex-1 pt-24 px-5 pb-48 lg:pb-32 lg:px-8 lg:max-w-6xl lg:mx-auto lg:w-full overflow-y-auto animate-fade-in no-scrollbar">
+      <div className="flex-1 pt-24 px-5 pb-48 lg:pb-32 lg:px-8 lg:max-w-5xl lg:mx-auto lg:w-full overflow-y-auto animate-fade-in no-scrollbar">
         {cartItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center mt-20 opacity-60 text-center">
             <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/5 shadow-inner">
@@ -230,7 +234,7 @@ const CartScreen = ({
       {/* 3. BARRA DE TOTAL FIXA */}
       {cartItems.length > 0 && (
         <div className="fixed bottom-0 left-0 w-full p-6 bg-navy/95 backdrop-blur-xl border-t border-white/10 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] lg:pl-20">
-          <div className="max-w-[428px] lg:max-w-6xl mx-auto">
+          <div className="max-w-[428px] lg:max-w-5xl mx-auto">
             <div className="flex justify-between items-end mb-4 px-1">
               <div>
                 <p className="text-xs text-white/50 mb-0.5">Total a pagar</p>
