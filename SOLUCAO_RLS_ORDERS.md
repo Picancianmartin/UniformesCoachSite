@@ -141,7 +141,7 @@ Se você quiser testar se o problema é realmente a política de RLS ou se há o
 ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
 ```
 
-**Se você executou este comando, REATIVE IMEDIATAMENTE após o teste:**
+**Se você executou este comando, REATIVE IMEDIATAMENTE após o teste (veja comando abaixo):**
 
 ---
 
