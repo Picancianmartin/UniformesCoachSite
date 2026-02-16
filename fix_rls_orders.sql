@@ -20,13 +20,25 @@ ORDER BY
     ordinal_position;
 
 -- ============================================
--- PASSO 2: Remover políticas antigas
+-- PASSO 2.0: Listar políticas existentes (OPCIONAL)
 -- ============================================
 
+-- Execute este comando para ver quais políticas existem:
+SELECT policyname, cmd, qual, with_check 
+FROM pg_policies 
+WHERE tablename = 'orders';
+
+-- ============================================
+-- PASSO 2.1: Remover políticas antigas
+-- ============================================
+
+-- Remova as políticas que aparecerem no resultado acima
+-- Exemplos comuns:
 DROP POLICY IF EXISTS "users_insert_own_orders" ON orders;
 DROP POLICY IF EXISTS "insert_orders_policy" ON orders;
 DROP POLICY IF EXISTS "enable_insert_for_authenticated_users" ON orders;
 DROP POLICY IF EXISTS "allow_insert" ON orders;
+-- Adicione mais linhas DROP POLICY conforme necessário
 
 -- ============================================
 -- PASSO 2: Criar política de INSERT para autenticados
@@ -66,9 +78,16 @@ USING (auth.role() = 'authenticated');
 
 -- ============================================
 -- PASSO 3: Desativar RLS (APENAS PARA TESTES)
+-- ⚠️  PERIGO: NÃO USE EM PRODUÇÃO! ⚠️
 -- ============================================
 
-ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
+-- ⚠️  ATENÇÃO: Este comando deixa sua tabela COMPLETAMENTE desprotegida!
+-- ⚠️  Qualquer pessoa (mesmo não autenticada) poderá acessar TODOS os dados!
+-- ⚠️  Use APENAS em ambiente de desenvolvimento/teste!
+-- ⚠️  NUNCA execute em produção!
 
--- Para reativar depois:
+-- Descomente a linha abaixo APENAS se você entende os riscos:
+-- ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
+
+-- Para reativar depois (OBRIGATÓRIO):
 -- ALTER TABLE orders ENABLE ROW LEVEL SECURITY;

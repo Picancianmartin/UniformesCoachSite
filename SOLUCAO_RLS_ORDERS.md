@@ -35,6 +35,23 @@ Com isso, você saberá se existe uma coluna como `user_id`, `cliente_id`, `prof
 
 ## Passo 2: Remover Políticas Antigas e Criar Nova Política para Usuários Autenticados
 
+### 2.0 - Listar Políticas Existentes (OPCIONAL)
+
+Antes de remover políticas, veja quais existem:
+
+```sql
+SELECT policyname, cmd, qual, with_check 
+FROM pg_policies 
+WHERE tablename = 'orders';
+```
+
+**O que este comando faz:**
+- Lista todas as políticas RLS atualmente aplicadas à tabela `orders`
+- Mostra o nome, tipo de operação (INSERT, SELECT, etc.) e as condições de cada política
+- Use isso para identificar exatamente quais políticas você precisa remover
+
+---
+
 ### 2.1 - Remover TODAS as Políticas Existentes da Tabela `orders`
 
 ```sql
@@ -45,8 +62,10 @@ DROP POLICY IF EXISTS "allow_insert" ON orders;
 ```
 
 **O que este comando faz:**
-- Remove todas as políticas de RLS que podem estar causando conflito
-- Use quantos `DROP POLICY` você achar necessário caso tenha outras políticas com nomes diferentes
+- Remove as políticas de RLS que podem estar causando conflito
+- Os nomes acima são exemplos comuns
+- **IMPORTANTE:** Use os nomes que apareceram no comando do Passo 2.0
+- Adicione mais linhas `DROP POLICY` conforme necessário para remover todas as políticas listadas
 
 ---
 
@@ -106,13 +125,23 @@ USING (auth.role() = 'authenticated');
 
 ## Passo 3: Desativar RLS Temporariamente (Para Testes)
 
-Se você quiser testar se o problema é realmente a política de RLS ou se há outro erro, pode desativar temporariamente o RLS:
+### ⚠️  AVISO CRÍTICO DE SEGURANÇA ⚠️
+
+**NÃO USE ESTE COMANDO EM PRODUÇÃO!**
+
+Se você quiser testar se o problema é realmente a política de RLS ou se há outro erro, pode desativar temporariamente o RLS. Porém, **isso é EXTREMAMENTE perigoso**:
+
+- ❌ **Qualquer pessoa** (mesmo não autenticada) poderá acessar **TODOS os dados** da tabela
+- ❌ **Não há proteção nenhuma** enquanto o RLS estiver desativado
+- ❌ **Todos os pedidos de todos os clientes** ficarão visíveis publicamente
+- ✅ Use **APENAS em ambiente de desenvolvimento/teste local**
+- ✅ **NUNCA em produção**
 
 ```sql
 ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
 ```
 
-**⚠️ ATENÇÃO:** Com o RLS desabilitado, **qualquer usuário (mesmo não autenticado)** poderá acessar TODOS os dados da tabela `orders`. Só use este comando para testes e depois reative o RLS!
+**Se você executou este comando, REATIVE IMEDIATAMENTE após o teste:**
 
 ---
 
@@ -129,9 +158,10 @@ Depois de reativar, não esqueça de aplicar as políticas do Passo 2.
 ## Resumo da Solução
 
 1. **Execute o Passo 1** para ver as colunas da tabela
-2. **Execute os comandos do Passo 2.1 e 2.2** para remover políticas antigas e criar uma nova política simples
-3. **Se o erro persistir**, execute o Passo 3 para desativar o RLS e testar
-4. **Se funcionar sem RLS**, o problema era a política. Reative o RLS e garanta que a política do Passo 2.2 foi criada corretamente.
+2. **Execute o Passo 2.0** (opcional) para listar as políticas existentes
+3. **Execute os comandos do Passo 2.1 e 2.2** para remover políticas antigas e criar uma nova política simples
+4. **Se o erro persistir**, considere o Passo 3 (mas leia os avisos de segurança primeiro!)
+5. **Se funcionar sem RLS**, o problema era a política. Reative o RLS e garanta que a política do Passo 2.2 foi criada corretamente.
 
 ---
 
