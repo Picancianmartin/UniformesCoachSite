@@ -41,7 +41,7 @@ DROP POLICY IF EXISTS "allow_insert" ON orders;
 -- Adicione mais linhas DROP POLICY conforme necessário
 
 -- ============================================
--- PASSO 2: Criar política de INSERT para autenticados
+-- PASSO 2.2: Criar política de INSERT para autenticados
 -- ============================================
 
 CREATE POLICY "allow_authenticated_insert"
@@ -51,7 +51,7 @@ TO authenticated
 WITH CHECK (auth.role() = 'authenticated');
 
 -- ============================================
--- PASSO 2 (OPCIONAL): Políticas adicionais
+-- PASSO 2.3 (OPCIONAL): Políticas adicionais
 -- ============================================
 
 -- SELECT (Visualizar)
