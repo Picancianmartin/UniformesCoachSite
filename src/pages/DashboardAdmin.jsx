@@ -170,6 +170,8 @@ export default function DashboardAdmin({ onNavigate }) {
     to: new Date(),
   });
 
+  const [activeFilter, setActiveFilter] = useState(null);
+
   const setQuickDate = (type) => {
     const today = new Date();
     let from,
@@ -208,8 +210,6 @@ export default function DashboardAdmin({ onNavigate }) {
       return "month";
     return null;
   }, [dateRange]);
-
-  const [activeFilter, setActiveFilter] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -522,32 +522,24 @@ export default function DashboardAdmin({ onNavigate }) {
 
           <div className="flex-1 flex flex-col items-center justify-center">
             <DonutChart
-              // ORDEM FORÇADA: 1. Pix, 2. Máquina, 3. Outros
+              // ORDEM FORÇADA: 1. Pix, 2. Máquina, 3. Na Retirada, 4. Outros
               data={[...data.chartPagamentos].sort((a, b) => {
-                const order = { Pix: 1, Máquina: 2, Outros: 3 };
+                const order = { Pix: 1, Máquina: 2, "Na Retirada": 3, Outros: 4 };
                 return (order[a.name] || 99) - (order[b.name] || 99);
               })}
               category="value"
               index="name"
               valueFormatter={compactFormatter}
-              // CORES SEGURAS: Amber (Laranja), Sky (Azul), Violet (Roxo)
-              colors={["amber", "sky", "violet"]}
+              // CORES SEGURAS: Pix=Amber, Máquina=Sky, Na Retirada=Indigo, Outros=Violet
+              colors={["amber", "sky", "indigo", "violet"]}
               variant="donut"
               showAnimation={true}
               className="h-48 cursor-pointer hover:opacity-80 transition-opacity [&_text]:!fill-white"
-              onValueChange={(v) => toggleFilter("payment", v.name || v)}
+              onValueChange={(v) => v ? toggleFilter("payment", v.name || v) : clearFilters()}
             />
 
             {/* LEGENDA MANUAL (Sincronizada com as cores acima) */}
             <div className="flex gap-4 mt-6 justify-center w-full">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></div>
-                <span
-                  className={`text-xs ${activeFilter?.value === "Na Retirada" ? "text-white font-bold" : "text-slate-400"}`}
-                >
-                  Na Retirada
-                </span>
-              </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]"></div>
                 <span
@@ -564,11 +556,19 @@ export default function DashboardAdmin({ onNavigate }) {
                   Máquina
                 </span>
               </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></div>
+                <span
+                  className={`text-xs ${activeFilter?.value === "Na Retirada" ? "text-white font-bold" : "text-slate-400"}`}
+                >
+                  Na Retirada
+                </span>
+              </div>
             </div>
 
             {/* --- TRUQUE DE SEGURANÇA (SAFELIST) --- */}
             {/* Isso força o Tailwind a incluir as cores do gráfico no CSS final */}
-            <div className="hidden fill-amber-500 fill-sky-500 fill-violet-500 text-amber-500 text-sky-500 text-violet-500"></div>
+            <div className="hidden fill-amber-500 fill-sky-500 fill-indigo-500 fill-violet-500 text-amber-500 text-sky-500 text-indigo-500 text-violet-500"></div>
           </div>
         </Card>
       </Grid>
