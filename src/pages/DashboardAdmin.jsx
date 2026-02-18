@@ -535,7 +535,7 @@ export default function DashboardAdmin({ onNavigate }) {
               variant="donut"
               showAnimation={true}
               className="h-48 cursor-pointer hover:opacity-80 transition-opacity [&_text]:!fill-white"
-              onValueChange={(v) => v ? toggleFilter("payment", v.name || v) : clearFilters()}
+              onValueChange={(v) => v != null ? toggleFilter("payment", v.name || v) : clearFilters()}
             />
 
             {/* LEGENDA MANUAL (Sincronizada com as cores acima) */}
