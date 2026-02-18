@@ -30,6 +30,7 @@ import {
   Wallet,
   Banknote,
   Image as ImageIcon,
+  LayoutDashboard,
 } from "lucide-react";
 
 const AdminScreen = ({ onNavigate, onLogout }) => {
@@ -649,6 +650,14 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
 
           {/* GRUPO DIREITA: Botões de Ação */}
           <div className="flex gap-2">
+            {/* --- NOVO BOTÃO: DASHBOARD --- */}
+            <button
+              onClick={() => onNavigate("dashboard")}
+              title="Abrir Dashboard BI"
+              className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center hover:bg-indigo-500/20 text-indigo-400 transition-colors border border-indigo-500/10"
+            >
+              <LayoutDashboard size={18} />
+            </button>
             <button
               onClick={fetchOrders}
               title="Atualizar"

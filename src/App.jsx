@@ -19,6 +19,8 @@ import AdminScreen from "./screens/AdminScreen";
 import Footer from "./components/ui/Footer";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 
+import DashboardAdmin from "./pages/DashboardAdmin";
+
 export default function App() {
   const [screen, setScreen] = useState("home");
   const [toast, setToast] = useState({ show: false, message: "", icon: "" });
@@ -46,7 +48,9 @@ export default function App() {
       return local
         .split(/[._-]/)
         .filter((part) => part.length > 0)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .map(
+          (part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase(),
+        )
         .join(" ");
     };
 
@@ -160,7 +164,6 @@ export default function App() {
     return data;
   }, []);
 
-  
   useEffect(() => {
     if (user.phone) {
       fetchMyOrders(user.phone).then((data) => setOrders(data || []));
@@ -311,11 +314,10 @@ export default function App() {
     confirmation: "home",
     "reset-password": "home",
     admin: "home",
+    dashboard: "admin",
   };
   useSwipeBack(
-    screenBackMap[screen]
-      ? () => setScreen(screenBackMap[screen])
-      : null,
+    screenBackMap[screen] ? () => setScreen(screenBackMap[screen]) : null,
   );
 
   // --- 4. Roteamento de Telas ---
@@ -384,6 +386,8 @@ export default function App() {
     "reset-password": <ResetPasswordScreen onNavigate={setScreen} />,
 
     admin: <AdminScreen onNavigate={setScreen} onLogout={handleFullLogout} />,
+
+    dashboard: <DashboardAdmin onNavigate={setScreen} />,
   };
 
   return (
@@ -398,7 +402,13 @@ export default function App() {
       {/* Desktop Sidebar (hidden on mobile) */}
       {screen !== "signup" && (
         <DesktopSidebar
-          active={screen === "product" ? "catalog" : screen === "admin" ? "account" : screen}
+          active={
+            screen === "product"
+              ? "catalog"
+              : screen === "admin" || screen === "dashboard"
+                ? "account"
+                : screen
+          }
           onNavigate={setScreen}
           cartCount={cart.length}
         />
@@ -417,6 +427,7 @@ export default function App() {
 
       {screen !== "signup" &&
         screen !== "admin" &&
+        screen !== "dashboard" &&
         screen !== "product" &&
         screen !== "cart" && (
           <BottomNav

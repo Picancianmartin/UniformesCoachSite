@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Pegue esses dados no Painel do Supabase > Project Settings > API
-const supabaseUrl = 'https://khabhzzigvuyuljiruce.supabase.co' // ex: https://xyz.supabase.co
-const supabaseKey = 'sb_publishable_ZAKthjkahy5f8SFEi8eybA_8g9phYeT'        // A chave pública (public/anon)
+// Agora os dados vêm do arquivo .env.local e não ficam expostos no código
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase = createClient(supabaseUrl, supabaseKey)
