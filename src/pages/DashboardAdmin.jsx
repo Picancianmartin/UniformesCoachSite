@@ -27,7 +27,9 @@ import {
   Filter,
   X,
   ChevronRight,
+  Download,
 } from "lucide-react";
+import { exportDashboardToExcel } from "../lib/exportToExcel";
 import { ptBR } from "date-fns/locale";
 import { subDays, format, startOfMonth, endOfMonth, isSameDay } from "date-fns";
 import { supabase } from "../services/supabase";
@@ -164,6 +166,7 @@ const CustomTooltip = ({ payload, active, label }) => {
 export default function DashboardAdmin({ onNavigate }) {
   const [rawData, setRawData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   const [dateRange, setDateRange] = useState({
     from: subDays(new Date(), 30),
@@ -353,6 +356,22 @@ export default function DashboardAdmin({ onNavigate }) {
   };
   const clearFilters = () => setActiveFilter(null);
 
+  const handleExportExcel = async () => {
+    setExporting(true);
+    try {
+      await exportDashboardToExcel({
+        data,
+        rawData,
+        dateRange,
+        activeFilter,
+      });
+    } catch (error) {
+      console.error("Erro ao exportar:", error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading)
     return (
       <div
@@ -388,6 +407,20 @@ export default function DashboardAdmin({ onNavigate }) {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
+          {/* BOTÃO DE EXPORTAR EXCEL */}
+          <button
+            onClick={handleExportExcel}
+            disabled={exporting}
+            className="px-4 py-2 text-xs font-bold text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20 border border-emerald-400/20 rounded-lg flex items-center gap-2 transition-all w-full sm:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exporting ? (
+              <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <Download size={14} />
+            )}
+            {exporting ? "Exportando..." : "Exportar Excel"}
+          </button>
+
           {activeFilter && (
             <button
               onClick={clearFilters}
