@@ -142,7 +142,7 @@ export async function exportDashboardToExcel({
     valueCell.numFmt = '"R$ "#,##0.00';
     const percentCell = paymentSheet.getCell(`C${rowNum}`);
     percentCell.value =
-      totalPagamentos > 0 ? (item.value / totalPagamentos) * 100 : 0;
+      totalPagamentos > 0 ? item.value / totalPagamentos : 0;
     percentCell.numFmt = "0.00%";
     paymentSheet.getRow(rowNum).eachCell((cell) => {
       Object.assign(cell, dataStyle);
@@ -176,7 +176,7 @@ export async function exportDashboardToExcel({
     collectionSheet.getCell(`B${rowNum}`).value = item.value;
     const percentCell = collectionSheet.getCell(`C${rowNum}`);
     percentCell.value =
-      totalColecoes > 0 ? (item.value / totalColecoes) * 100 : 0;
+      totalColecoes > 0 ? item.value / totalColecoes : 0;
     percentCell.numFmt = "0.00%";
     collectionSheet.getRow(rowNum).eachCell((cell) => {
       Object.assign(cell, dataStyle);
