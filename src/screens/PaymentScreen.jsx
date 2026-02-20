@@ -172,43 +172,85 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
     }
   };
 
-  // --- 2. CRIAR PEDIDO (MODIFICADO) ---
+  // --- 2. CRIAR PEDIDO (BLINDADO COM DUPLA GRAVAÇÃO E CRIAÇÃO DE USUÁRIO) ---
   const createOrder = async (
     paymentMethod,
     externalId = null,
     status = "Pendente",
   ) => {
     try {
-      // 1. ADICIONE ESTA LINHA (Gera o ID curto):
+      // ---> PASSO 0: SALVAR O USUÁRIO (Risco Zero) <---
+      if (user && user.name) {
+        // Verifica se já existe alguém com esse telefone
+        const { data: existingUser } = await supabase
+          .from("users")
+          .select("id")
+          .eq("phone", user.phone || "")
+          .maybeSingle();
+
+        // Se não achou ninguém, insere o cliente novo silenciosamente
+        if (!existingUser) {
+          const { error: userError } = await supabase
+            .from("users")
+            .insert([{ name: user.name, phone: user.phone || "" }]);
+
+          if (userError) console.error("Aviso (Users):", userError);
+        }
+      }
+
+      // 1. Gera o ID curto
       const shortId = Math.random().toString(36).substring(2, 8).toUpperCase();
 
       const newOrder = {
-        // 2. ADICIONE ESTA LINHA (Envia o ID para o banco):
         display_id: shortId,
-
         customer_name: user.name,
         customer_phone: user.phone,
         total: total,
-        items: cartItems,
+        items: cartItems, // MANTIDO: Salva o JSON para compatibilidade
         status: status,
         payment_method: paymentMethod,
         external_payment_id: externalId,
       };
 
-      const { data, error } = await supabase
+      // PASSO 1: Salva o pedido na tabela 'orders' (CRÍTICO)
+      const { data: orderData, error: orderError } = await supabase
         .from("orders")
         .insert([newOrder])
         .select()
         .single();
 
-      if (error) throw error;
+      if (orderError) throw orderError; // Se esse falhar, a compra para aqui.
 
-      setCurrentOrderId(data.id);
+      // PASSO 2: Salva os itens na tabela 'order_items' (Para o Dashboard)
+      if (orderData && orderData.id) {
+        const itensParaSalvar = cartItems.map((item) => ({
+          order_id: orderData.id,
+          product_name: item.name,
+          is_kit:
+            item.isKit ||
+            item.category === "kit" ||
+            item.category === "kits" ||
+            false,
+          size_top: item.selectedSizes?.top || null,
+          size_bottom: item.selectedSizes?.bottom || null,
+          size_standard: item.selectedSizes?.standard || null,
+          quantity: item.quantity,
+          price: item.price,
+        }));
+
+        const { error: itemsError } = await supabase
+          .from("order_items")
+          .insert(itensParaSalvar);
+
+        if (itemsError) console.error("Aviso (Itens):", itemsError);
+      }
+
+      setCurrentOrderId(orderData.id);
       await updateStock(cartItems);
 
-      return data.id;
+      return orderData.id;
     } catch (error) {
-      console.error("Erro ao criar pedido:", error);
+      console.error("Erro CRÍTICO ao criar pedido:", error);
       throw error;
     }
   };
