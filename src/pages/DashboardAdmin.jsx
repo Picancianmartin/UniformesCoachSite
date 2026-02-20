@@ -24,7 +24,6 @@ import {
 import { supabase } from "../services/supabase";
 import { exportToExcel } from "../utils/exportToExcel";
 
-
 // --- TEMA LIMPO E SÓLIDO ---
 const THEME = {
   bg: "bg-[#000D23]",
@@ -119,18 +118,18 @@ const KpiCard = ({ title, value, icon, color, subtext }) => {
 
   return (
     <div
-      className={`relative p-6 rounded-2xl border border-white/5 shadow-sm ${THEME.card}`}
+      className={`relative p-6 rounded-2xl border border-white/5 shadow-sm ${THEME.card} flex flex-col justify-between h-full`}
     >
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
             {title}
           </p>
-          <h3 className="text-3xl font-bold text-white tracking-tight">
+          <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight break-all">
             {value}
           </h3>
         </div>
-        <div className={`p-3 rounded-xl ${iconBg} ${iconColor}`}>
+        <div className={`p-3 rounded-xl ${iconBg} ${iconColor} shrink-0`}>
           <IconComponent size={24} />
         </div>
       </div>
@@ -401,14 +400,14 @@ export default function DashboardAdmin({ onNavigate }) {
 
   return (
     <div
-      className={`min-h-screen ${THEME.bg} text-white p-6 lg:p-10 font-sans selection:bg-sky-500/30 pb-20`}
+      className={`min-h-screen ${THEME.bg} text-white p-4 sm:p-6 lg:p-10 font-sans selection:bg-sky-500/30 pb-20 overflow-x-hidden`}
     >
-      <header className="mb-10 flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">
+      <header className="mb-10 flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex items-start gap-4">
           <button
             onClick={() => onNavigate("admin")}
             aria-label="Voltar para Admin"
-            className="group inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-slate-300 shadow-sm backdrop-blur-xl transition
+            className="group inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-slate-300 shadow-sm backdrop-blur-xl transition
                  hover:bg-white/[0.06] hover:text-white
                  focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
           >
@@ -419,8 +418,8 @@ export default function DashboardAdmin({ onNavigate }) {
           </button>
 
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-white">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
                 Estatísticas de Vendas
               </h1>
 
@@ -430,19 +429,20 @@ export default function DashboardAdmin({ onNavigate }) {
               </span>
             </div>
 
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-xs sm:text-sm text-slate-400">
               Analise performance por período e acompanhe tendências.
             </p>
           </div>
         </div>
 
-        <div className="w-full lg:w-auto">
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-2 shadow-lg backdrop-blur-xl sm:flex-row sm:items-center">
+        <div className="w-full xl:w-auto">
+          {/* Ajuste na barra de filtros: flex-col no mobile, md:flex-row e wrap para não quebrar */}
+          <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-2 shadow-lg backdrop-blur-xl md:flex-row md:flex-wrap lg:flex-nowrap items-stretch md:items-center">
             {/* Presets */}
             <div
               role="tablist"
               aria-label="Períodos rápidos"
-              className="flex flex-wrap items-center gap-1 rounded-xl bg-black/20 p-1"
+              className="flex flex-wrap items-center gap-1 rounded-xl bg-black/20 p-1 md:flex-nowrap"
             >
               {[
                 { label: "Hoje", key: "today" },
@@ -460,7 +460,7 @@ export default function DashboardAdmin({ onNavigate }) {
                     aria-selected={active}
                     onClick={() => setQuickDate(btn.key)}
                     className={[
-                      "px-3 py-2 text-sm font-semibold rounded-lg transition whitespace-nowrap",
+                      "px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg transition whitespace-nowrap flex-1 md:flex-none text-center",
                       "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40",
                       active
                         ? "bg-sky-500 text-white shadow-sm"
@@ -473,7 +473,7 @@ export default function DashboardAdmin({ onNavigate }) {
               })}
             </div>
 
-            {/* Datas digitáveis (SEM PILL) */}
+            {/* Datas digitáveis */}
             <div
               className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/10 bg-black/10 px-3 py-2
              focus-within:ring-2 focus-within:ring-sky-500/40"
@@ -502,7 +502,6 @@ export default function DashboardAdmin({ onNavigate }) {
                         skipNextBlurApply.current = false;
                         return;
                       }
-                      // mantém seu comportamento atual (se você já aplica no blur)
                       applyTypedRange(s, ed);
                     }}
                     onKeyDown={(e) => {
@@ -563,11 +562,11 @@ export default function DashboardAdmin({ onNavigate }) {
                 </div>
               </div>
 
-              {/* ✔ Aplicar (aparece quando foca/edita) */}
+              {/* ✔ Aplicar */}
               {showApply && (
                 <button
                   type="button"
-                  onMouseDown={(e) => e.preventDefault()} // evita “piscada” por blur
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={applyFromButton}
                   disabled={!canApply}
                   aria-label="Aplicar período"
@@ -601,8 +600,8 @@ export default function DashboardAdmin({ onNavigate }) {
         </div>
       </header>
 
-      {/* KPI GRID */}
-      <Grid numItems={3} numItemsSm={3} className="gap-6 mb-8">
+      {/* KPI GRID - Ajustado para ser responsivo (1 coluna no mobile, 2 tablet, 3 PC) */}
+      <Grid numItems={1} numItemsSm={2} numItemsLg={3} className="gap-6 mb-8">
         <KpiCard
           title="Pedidos Realizados"
           value={data.totalPedidos}
@@ -628,12 +627,12 @@ export default function DashboardAdmin({ onNavigate }) {
 
       {/* RELATÓRIO / TABELA */}
       <Card
-        className={`${THEME.card} border-white/5 ring-0 rounded-2xl shadow-lg overflow-hidden p-0 mb-8`}
+        className={`${THEME.card} border-white/5 ring-0 rounded-2xl shadow-lg overflow-hidden p-0 mb-8 w-full`}
       >
-        <div className="p-6 pb-4 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="p-4 sm:p-6 pb-4 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <Title className="text-white">Relatório Detalhado de Vendas</Title>
-            <Text className="text-slate-400 text-sm">
+            <Text className="text-slate-400 text-xs sm:text-sm">
               Listagem completa dos itens vendidos no período.
             </Text>
           </div>
@@ -642,37 +641,39 @@ export default function DashboardAdmin({ onNavigate }) {
             color="emerald"
             onClick={handleDownloadExcel}
             disabled={!data?.filtered?.length}
+            className="w-full sm:w-auto"
           >
             Exportar Excel
           </Button>
         </div>
 
-        <div className="overflow-x-auto max-h-[600px] overflow-y-auto bg-[#000D23]/50 rounded-b-2xl border-t border-white/10">
-          <table className="w-full text-left border-collapse text-sm">
+        {/* Wrapper de Scroll Horizontal com min-w para a tabela não espremer */}
+        <div className="overflow-x-auto w-full max-h-[600px] overflow-y-auto bg-[#000D23]/50 rounded-b-2xl border-t border-white/10">
+          <table className="w-full min-w-[900px] text-left border-collapse text-sm">
             <thead className="sticky top-0 bg-[#0a275c] z-10 shadow-md">
               <tr>
-                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider">
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
                   Data
                 </th>
-                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider">
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
                   Cliente
                 </th>
-                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider">
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
                   Produto
                 </th>
-                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider">
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
                   Coleção
                 </th>
-                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider text-center">
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider text-center whitespace-nowrap">
                   Qtd
                 </th>
-                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider">
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
                   Situação
                 </th>
-                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider">
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
                   Pagamento
                 </th>
-                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider text-right">
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider text-right whitespace-nowrap">
                   Total
                 </th>
               </tr>
@@ -754,7 +755,7 @@ export default function DashboardAdmin({ onNavigate }) {
                 <tr>
                   <td
                     colSpan={4}
-                    className="border border-white/10 px-3 py-3 text-right text-slate-300 font-bold uppercase tracking-wider text-xs"
+                    className="border border-white/10 px-3 py-3 text-right text-slate-300 font-bold uppercase tracking-wider text-xs whitespace-nowrap"
                   >
                     Totais do Período:
                   </td>
@@ -768,7 +769,7 @@ export default function DashboardAdmin({ onNavigate }) {
                     colSpan={2}
                     className="border border-white/10 px-3 py-3 bg-[#0a275c]/50"
                   ></td>
-                  <td className="border border-white/10 px-3 py-3 text-right text-emerald-400 font-mono font-bold text-base bg-emerald-500/10">
+                  <td className="border border-white/10 px-3 py-3 text-right text-emerald-400 font-mono font-bold text-base bg-emerald-500/10 whitespace-nowrap">
                     {currencyFormatter(
                       data.filtered.reduce(
                         (acc, curr) =>
