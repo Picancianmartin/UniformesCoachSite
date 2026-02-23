@@ -429,17 +429,17 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
     window.open(url, "_blank");
   };
 
-  // --- 6. PAGAR RETIRADA (MANTIDA) ---
-  const handlePickupPayment = async () => {
-    setLoading(true);
-    try {
-      await createOrder("pickup", null, "Pendente");
-      handleConfirmAndExit(); // Usa a mesma lógica do Toast
-    } catch (error) {
-      alert("Erro ao finalizar: " + error.message);
-      setLoading(false);
-    }
-  };
+  // // --- 6. PAGAR RETIRADA (MANTIDA) ---
+  // const handlePickupPayment = async () => {
+  //   setLoading(true);
+  //   try {
+  //     await createOrder("pickup", null, "Pendente");
+  //     handleConfirmAndExit(); // Usa a mesma lógica do Toast
+  //   } catch (error) {
+  //     alert("Erro ao finalizar: " + error.message);
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-navy p-6 animate-fade-in text-white font-outfit relative">
@@ -506,7 +506,7 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
             </div>
           </button>
 
-          <button
+          {/* <button
             onClick={handlePickupPayment}
             disabled={loading}
             className="w-full p-5 rounded-2xl border bg-white/5 border-white/10 hover:bg-white/10 text-left transition-all flex items-center gap-4 group"
@@ -518,7 +518,7 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
               <p className="font-bold text-white text-lg">Pagar na Retirada</p>
               <p className="text-xs text-white/50">Dinheiro ou Cartão</p>
             </div>
-          </button>
+          </button> */}
         </div>
       ) : (
         // --- TELA DO QR CODE ---
