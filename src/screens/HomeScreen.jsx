@@ -13,7 +13,6 @@ import {
   Play,
 } from "lucide-react";
 import Header from "../components/Header";
-import BottomNav from "../components/BottomNav";
 import logodavid from "../assets/logodavid.png";
 import useIsDesktop from "../hooks/useIsDesktop";
 
@@ -278,11 +277,6 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
         </div>
       </div>
 
-      <BottomNav
-        active="home"
-        onNavigate={onNavigate}
-        cartCount={cartItems.length}
-      />
     </div>
   );
 };

@@ -53,7 +53,7 @@ const BottomNav = ({ active, onNavigate, cartCount = 0 }) => {
               </div>
 
               {/* Label */}
-              <span className={`text-[10px] tracking-wide transition-all duration-300 ${isActive ? 'font-bold opacity-100 translate-y-0' : 'font-medium opacity-60'}`}>
+              <span className={`text-[10px] tracking-wide transition-all duration-300 max-w-full truncate ${isActive ? 'font-bold opacity-100 translate-y-0' : 'font-medium opacity-60'}`}>
                 {item.label}
               </span>
             </button>
