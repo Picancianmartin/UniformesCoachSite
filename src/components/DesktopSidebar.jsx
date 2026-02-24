@@ -53,7 +53,7 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
               </div>
 
               <span
-                className={`text-sm font-medium transition-all duration-300 ${
+                className={`text-sm font-medium transition-all duration-300 max-w-full truncate ${
                   isActive ? "font-bold opacity-100" : "opacity-60"
                 }`}
               >
