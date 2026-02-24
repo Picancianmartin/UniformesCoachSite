@@ -258,7 +258,7 @@ Minha dúvida é:
 `.trim(); // .trim() remove espaços vazios no começo e fim
 
     // 4. Abre o WhatsApp
-    const phone = "5515998460900"; // Seu número
+    const phone = "5515998590909"; // Seu número
     window.open(
       `https://wa.me/${phone}?text=${encodeURIComponent(text)}`,
       "_blank",
