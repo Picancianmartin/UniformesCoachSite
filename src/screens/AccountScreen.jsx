@@ -225,10 +225,13 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
 
             // Detalhe do tamanho (inteligente)
             let sizeInfo = "";
-            if (item.isKit) {
-              sizeInfo = `[Top:${item.size_top || "?"}/Bot:${item.size_bottom || "?"}]`;
+            if (item.isKit || item.is_kit) {
+              const top = item.selectedSizes?.top || item.size_top || "?";
+              const bot = item.selectedSizes?.bottom || item.size_bottom || "?";
+              sizeInfo = `[Top:${top}/Bot:${bot}]`;
             } else {
-              sizeInfo = `[${item.size_standard || "U"}]`;
+              const std = item.selectedSizes?.standard || item.size_standard || "U";
+              sizeInfo = `[${std}]`;
             }
 
             return `▪️ ${qtd}x ${nome} ${textoColecao} ${sizeInfo}`;
