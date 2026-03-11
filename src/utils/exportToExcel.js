@@ -335,10 +335,22 @@ export async function exportToExcel({
     views: [{ state: "frozen", ySplit: 1 }], // Congela apenas o cabeçalho da tabela
   });
 
+  // --- HELPER: formata tamanho do item ---
+  function formatSizeExcel(item) {
+    const isKit = item.is_kit || item.isKit;
+    if (isKit) {
+      const top = item.size_top || item.tamanho_top || "?";
+      const bot = item.size_bottom || item.tamanho_bottom || "?";
+      return `T:${top} / B:${bot}`;
+    }
+    return item.size_standard || item.tamanho || item.tamanho_standard || "-";
+  }
+
   wsDados.columns = [
     { key: "data", width: 18 },
     { key: "cliente", width: 30 },
     { key: "produto", width: 38 },
+    { key: "tamanho", width: 16 },
     { key: "colecao", width: 22 },
     { key: "qtd", width: 10 },
     { key: "preco", width: 16 },
@@ -351,6 +363,7 @@ export async function exportToExcel({
     new Date(item.data_venda),
     item.cliente || "Consumidor",
     item.produto,
+    formatSizeExcel(item),
     item.colecao || "-",
     Number(item.quantidade || 0),
     Number(item.preco_unitario || 0),
@@ -376,13 +389,14 @@ export async function exportToExcel({
     totalsRow: true,
     style: { theme: "TableStyleLight9", showRowStripes: true },
     columns: [
-      { name: "Data da Venda", filterButton: true, totalsRowFunction: "count" }, // Conta o total de linhas
+      { name: "Data da Venda", filterButton: true, totalsRowFunction: "count" },
       { name: "Cliente", filterButton: true, totalsRowLabel: "TOTAIS:" },
       { name: "Produto", filterButton: true },
+      { name: "Tamanho", filterButton: true },
       { name: "Coleção", filterButton: true },
-      { name: "Qtd", filterButton: true, totalsRowFunction: "sum" }, // Soma as quantidades
-      { name: "Valor Unit.", filterButton: true, totalsRowFunction: "average" }, // Média de preço
-      { name: "Subtotal", filterButton: true, totalsRowFunction: "sum" }, // Soma do Faturamento
+      { name: "Qtd", filterButton: true, totalsRowFunction: "sum" },
+      { name: "Valor Unit.", filterButton: true, totalsRowFunction: "average" },
+      { name: "Subtotal", filterButton: true, totalsRowFunction: "sum" },
       { name: "Pgto.", filterButton: true },
       { name: "Situação", filterButton: true },
     ],
@@ -391,15 +405,16 @@ export async function exportToExcel({
 
   // Formatação das colunas de dados
   wsDados.getColumn(1).numFmt = "dd/mm/yyyy hh:mm";
-  wsDados.getColumn(5).numFmt = "#,##0";
-  wsDados.getColumn(6).numFmt = '"R$ "#,##0.00';
+  wsDados.getColumn(4).alignment = { horizontal: "center", vertical: "middle" };
+  wsDados.getColumn(6).numFmt = "#,##0";
   wsDados.getColumn(7).numFmt = '"R$ "#,##0.00';
+  wsDados.getColumn(8).numFmt = '"R$ "#,##0.00';
 
-  wsDados.getColumn(5).alignment = { horizontal: "center", vertical: "middle" };
-  wsDados.getColumn(6).alignment = { horizontal: "right", vertical: "middle" };
+  wsDados.getColumn(6).alignment = { horizontal: "center", vertical: "middle" };
   wsDados.getColumn(7).alignment = { horizontal: "right", vertical: "middle" };
-  wsDados.getColumn(8).alignment = { horizontal: "center", vertical: "middle" };
+  wsDados.getColumn(8).alignment = { horizontal: "right", vertical: "middle" };
   wsDados.getColumn(9).alignment = { horizontal: "center", vertical: "middle" };
+  wsDados.getColumn(10).alignment = { horizontal: "center", vertical: "middle" };
 
   // --- ESTILIZANDO O CABEÇALHO DA TABELA ---
   const headerRowDados = wsDados.getRow(1);
@@ -436,15 +451,15 @@ export async function exportToExcel({
     }; // Fundo verde clarinho
 
     // Força o alinhamento correto nos totais
-    if (colNumber === 5 || colNumber === 1)
+    if (colNumber === 6 || colNumber === 1)
       cell.alignment = { horizontal: "center", vertical: "middle" };
-    if (colNumber === 6 || colNumber === 7)
+    if (colNumber === 7 || colNumber === 8)
       cell.alignment = { horizontal: "right", vertical: "middle" };
   });
 
   // Formatação condicional de status
   for (let r = 2; r <= rows.length + 1; r++) {
-    const statusCell = wsDados.getCell(`I${r}`);
+    const statusCell = wsDados.getCell(`J${r}`);
     const v = String(statusCell.value || "").toLowerCase();
     statusCell.font = { bold: true };
     if (v.includes("pago") || v.includes("conclu") || v.includes("retirada"))

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { Card, Title, Text, Grid, Badge, Button, BarList, DonutChart, AreaChart } from "@tremor/react";
+import { Card, Title, Text, Grid, Badge, Button } from "@tremor/react";
 import {
   ArrowLeft,
   Wallet,
@@ -12,10 +12,6 @@ import {
   DollarSign,
   CheckCircle,
   XCircle,
-  TrendingUp,
-  PieChart as PieChartIcon,
-  BarChart3,
-  CreditCard,
 } from "lucide-react";
 import {
   subDays,
@@ -38,6 +34,17 @@ const STATUS_LABELS = {
   "Concluído": "Concluído", "cancelado": "Cancelado",
 };
 const PAYMENT_LABELS = { credit_card: "Cartão", pickup: "Retirada", pix_manual: "Pix" };
+
+// --- HELPER: formata tamanho do item ---
+function formatSize(item) {
+  const isKit = item.is_kit || item.isKit;
+  if (isKit) {
+    const top = item.size_top || item.tamanho_top || "?";
+    const bot = item.size_bottom || item.tamanho_bottom || "?";
+    return `T:${top} / B:${bot}`;
+  }
+  return item.size_standard || item.tamanho || item.tamanho_standard || "-";
+}
 
 // --- TEMA LIMPO E SÓLIDO ---
 const THEME = {
@@ -159,14 +166,6 @@ const KpiCard = ({ title, value, icon, color, subtext }) => {
     </div>
   );
 };
-
-const ChartCard = ({ title, subtitle, children }) => (
-  <div className={`${THEME.card} border border-white/5 rounded-2xl shadow-lg p-5 sm:p-6`}>
-    <h3 className="text-sm font-bold text-white mb-1">{title}</h3>
-    {subtitle && <p className="text-xs text-slate-400 mb-4">{subtitle}</p>}
-    {children}
-  </div>
-);
 
 // --- COMPONENTE PRINCIPAL ---
 export default function DashboardAdmin({ onNavigate }) {
@@ -412,74 +411,9 @@ export default function DashboardAdmin({ onNavigate }) {
     });
     const taxaCancelamento = totalPedidos > 0 ? ((pedidosCancelados.size / totalPedidos) * 100) : 0;
 
-    // Revenue by Collection
-    const revenueByCollection = {};
-    filtered.forEach(item => {
-      const col = item.colecao || "Sem Coleção";
-      revenueByCollection[col] = (revenueByCollection[col] || 0) + (parseFloat(item.valor_total_item) || 0);
-    });
-    const collectionData = Object.entries(revenueByCollection)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-
-    // Order Status Distribution
-    const statusByOrder = {};
-    filtered.forEach(item => {
-      if (item.id_pedido && !statusByOrder[item.id_pedido]) {
-        statusByOrder[item.id_pedido] = item.status;
-      }
-    });
-    const statusCounts = {};
-    Object.values(statusByOrder).forEach(s => {
-      const label = STATUS_LABELS[s] || s || "Outro";
-      statusCounts[label] = (statusCounts[label] || 0) + 1;
-    });
-    const statusData = Object.entries(statusCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-
-    // Daily Revenue Trend (sort by actual date for correct chronological order)
-    const dailyRevenue = {};
-    filtered.forEach(item => {
-      try {
-        const d = new Date(item.data_venda);
-        if (!isValid(d)) return;
-        const key = d.toISOString().slice(0, 10); // YYYY-MM-DD for sorting
-        const label = format(d, "dd/MM");
-        if (!dailyRevenue[key]) dailyRevenue[key] = { label, total: 0 };
-        dailyRevenue[key].total += (parseFloat(item.valor_total_item) || 0);
-      } catch { /* skip malformed dates */ }
-    });
-    const trendData = Object.entries(dailyRevenue)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([, { label, total }]) => ({ date: label, Receita: total }));
-
-    // Top Products
-    const productQty = {};
-    filtered.forEach(item => {
-      const prod = item.produto || "Desconhecido";
-      productQty[prod] = (productQty[prod] || 0) + (Number(item.quantidade) || 0);
-    });
-    const topProducts = Object.entries(productQty)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 10);
-
-    // Payment Methods
-    const paymentCounts = {};
-    filtered.forEach(item => {
-      const raw = item.pagamento || "Outro";
-      const label = PAYMENT_LABELS[raw] || raw;
-      paymentCounts[label] = (paymentCounts[label] || 0) + 1;
-    });
-    const paymentData = Object.entries(paymentCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-
     return {
       totalFaturamento, totalPedidos, totalUsuarios, filtered,
       ticketMedio, totalPedidosPagos, taxaCancelamento,
-      collectionData, statusData, trendData, topProducts, paymentData,
     };
   }, [dateRange, rawData]);
 
@@ -753,90 +687,6 @@ export default function DashboardAdmin({ onNavigate }) {
         />
       </Grid>
 
-      {/* CHARTS ROW 1: Revenue by Collection + Order Status */}
-      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-8">
-        <div className="flex-1 min-w-0">
-          <ChartCard title="Receita por Coleção" subtitle="Faturamento agrupado por coleção">
-            {data.collectionData.length > 0 ? (
-              <BarList
-                data={data.collectionData}
-                color="sky"
-                className="text-white mt-2"
-                valueFormatter={currencyFormatter}
-              />
-            ) : (
-              <p className="text-xs text-slate-500 py-8 text-center">Sem dados no período</p>
-            )}
-          </ChartCard>
-        </div>
-        <div className="flex-1 min-w-0">
-          <ChartCard title="Distribuição por Status" subtitle="Status dos pedidos únicos">
-            {data.statusData.length > 0 ? (
-              <DonutChart
-                data={data.statusData}
-                category="value"
-                index="name"
-                colors={["sky", "amber", "emerald", "violet", "rose", "orange"]}
-                className="h-52"
-                showAnimation={true}
-              />
-            ) : (
-              <p className="text-xs text-slate-500 py-8 text-center">Sem dados no período</p>
-            )}
-          </ChartCard>
-        </div>
-      </div>
-
-      {/* CHARTS ROW 2: Sales Trend + Top Products */}
-      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-8">
-        <div className="flex-1 min-w-0">
-          <ChartCard title="Tendência de Vendas (Diário)" subtitle="Receita por dia no período">
-            {data.trendData.length > 0 ? (
-              <AreaChart
-                data={data.trendData}
-                index="date"
-                categories={["Receita"]}
-                colors={["sky"]}
-                className="h-52"
-                showAnimation={true}
-                valueFormatter={currencyFormatter}
-                curveType="monotone"
-              />
-            ) : (
-              <p className="text-xs text-slate-500 py-8 text-center">Sem dados no período</p>
-            )}
-          </ChartCard>
-        </div>
-        <div className="flex-1 min-w-0">
-          <ChartCard title="Top 10 Produtos" subtitle="Produtos mais vendidos por quantidade">
-            {data.topProducts.length > 0 ? (
-              <BarList
-                data={data.topProducts}
-                color="emerald"
-                className="text-white mt-2"
-              />
-            ) : (
-              <p className="text-xs text-slate-500 py-8 text-center">Sem dados no período</p>
-            )}
-          </ChartCard>
-        </div>
-      </div>
-
-      {/* CHARTS ROW 3: Payment Methods (full width) */}
-      <div className="mb-8">
-        <ChartCard title="Formas de Pagamento" subtitle="Distribuição por método de pagamento">
-          {data.paymentData.length > 0 ? (
-            <BarList
-              data={data.paymentData}
-              color="amber"
-              className="text-white mt-2"
-            />
-          ) : (
-            <p className="text-xs text-slate-500 py-8 text-center">Sem dados no período</p>
-          )}
-        </ChartCard>
-      </div>
-
       {/* RELATÓRIO / TABELA */}
       <Card
         className={`${THEME.card} border-white/5 ring-0 rounded-2xl shadow-lg overflow-hidden p-0 mb-8 w-full`}
@@ -861,7 +711,7 @@ export default function DashboardAdmin({ onNavigate }) {
 
         {/* Wrapper de Scroll Horizontal com min-w para a tabela não espremer */}
         <div className="overflow-x-auto w-full max-h-[600px] overflow-y-auto bg-[#000D23]/50 rounded-b-2xl border-t border-white/10">
-          <table className="w-full min-w-[900px] text-left border-collapse text-sm">
+          <table className="w-full min-w-[1000px] text-left border-collapse text-sm">
             <thead className="sticky top-0 bg-[#0a275c] z-10 shadow-md">
               <tr>
                 <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
@@ -872,6 +722,9 @@ export default function DashboardAdmin({ onNavigate }) {
                 </th>
                 <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
                   Produto
+                </th>
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
+                  Tamanho
                 </th>
                 <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
                   Coleção
@@ -905,6 +758,9 @@ export default function DashboardAdmin({ onNavigate }) {
                     </td>
                     <td className="border border-white/10 px-3 py-1.5 text-slate-300 min-w-[200px]">
                       {item.produto}
+                    </td>
+                    <td className="border border-white/10 px-3 py-1.5 text-slate-400 whitespace-nowrap text-center font-mono text-xs">
+                      {formatSize(item)}
                     </td>
                     <td className="border border-white/10 px-3 py-1.5 text-slate-400">
                       {item.colecao || "-"}
@@ -953,7 +809,7 @@ export default function DashboardAdmin({ onNavigate }) {
               ) : (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="border border-white/10 text-center py-16 text-slate-500"
                   >
                     Nenhum pedido encontrado neste período.
@@ -966,7 +822,7 @@ export default function DashboardAdmin({ onNavigate }) {
               <tfoot className="sticky bottom-0 bg-[#051e47] z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.2)]">
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="border border-white/10 px-3 py-3 text-right text-slate-300 font-bold uppercase tracking-wider text-xs whitespace-nowrap"
                   >
                     Totais do Período:
