@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { Card, Title, Text, Grid, Badge, Button } from "@tremor/react";
+import { Card, Title, Text, Grid, Badge, Button, BarList, DonutChart, AreaChart } from "@tremor/react";
 import {
   ArrowLeft,
   Wallet,
@@ -9,6 +9,13 @@ import {
   Calendar,
   X,
   Check,
+  DollarSign,
+  CheckCircle,
+  XCircle,
+  TrendingUp,
+  PieChart as PieChartIcon,
+  BarChart3,
+  CreditCard,
 } from "lucide-react";
 import {
   subDays,
@@ -23,6 +30,14 @@ import {
 } from "date-fns";
 import { supabase } from "../services/supabase";
 import { exportToExcel } from "../utils/exportToExcel";
+
+// --- STATIC LABEL MAPS ---
+const STATUS_LABELS = {
+  paid: "Pago", pending: "Pendente", "Em Produção": "Em Produção",
+  "Aguardando Comprovante": "Aguard. Comprovante", "Retirada Pendente": "Retirada Pendente",
+  "Concluído": "Concluído", "cancelado": "Cancelado",
+};
+const PAYMENT_LABELS = { credit_card: "Cartão", pickup: "Retirada", pix_manual: "Pix" };
 
 // --- TEMA LIMPO E SÓLIDO ---
 const THEME = {
@@ -103,18 +118,17 @@ const currencyFormatter = (number) =>
 // --- COMPONENTES VISUAIS ---
 const KpiCard = ({ title, value, icon, color, subtext }) => {
   const IconComponent = icon;
-  const iconColor =
-    color === "orange"
-      ? "text-orange-500"
-      : color === "emerald"
-        ? "text-emerald-500"
-        : "text-sky-500";
-  const iconBg =
-    color === "orange"
-      ? "bg-orange-500/10"
-      : color === "emerald"
-        ? "bg-emerald-500/10"
-        : "bg-sky-500/10";
+  const colorMap = {
+    sky: { text: "text-sky-500", bg: "bg-sky-500/10", dot: "bg-sky-500" },
+    orange: { text: "text-orange-500", bg: "bg-orange-500/10", dot: "bg-orange-500" },
+    emerald: { text: "text-emerald-500", bg: "bg-emerald-500/10", dot: "bg-emerald-500" },
+    violet: { text: "text-violet-500", bg: "bg-violet-500/10", dot: "bg-violet-500" },
+    teal: { text: "text-teal-500", bg: "bg-teal-500/10", dot: "bg-teal-500" },
+    rose: { text: "text-rose-500", bg: "bg-rose-500/10", dot: "bg-rose-500" },
+  };
+  const c = colorMap[color] || colorMap.sky;
+  const iconColor = c.text;
+  const iconBg = c.bg;
 
   return (
     <div
@@ -137,13 +151,7 @@ const KpiCard = ({ title, value, icon, color, subtext }) => {
       {subtext && (
         <div className="mt-4 flex items-center gap-2">
           <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              color === "orange"
-                ? "bg-orange-500"
-                : color === "emerald"
-                  ? "bg-emerald-500"
-                  : "bg-sky-500"
-            }`}
+            className={`w-1.5 h-1.5 rounded-full ${c.dot}`}
           />
           <p className="text-xs text-slate-400 font-medium">{subtext}</p>
         </div>
@@ -151,6 +159,14 @@ const KpiCard = ({ title, value, icon, color, subtext }) => {
     </div>
   );
 };
+
+const ChartCard = ({ title, subtitle, children }) => (
+  <div className={`${THEME.card} border border-white/5 rounded-2xl shadow-lg p-5 sm:p-6`}>
+    <h3 className="text-sm font-bold text-white mb-1">{title}</h3>
+    {subtitle && <p className="text-xs text-slate-400 mb-4">{subtitle}</p>}
+    {children}
+  </div>
+);
 
 // --- COMPONENTE PRINCIPAL ---
 export default function DashboardAdmin({ onNavigate }) {
@@ -373,7 +389,98 @@ export default function DashboardAdmin({ onNavigate }) {
       filtered.map((d) => d.cliente?.trim().toLowerCase()).filter(Boolean),
     ).size;
 
-    return { totalFaturamento, totalPedidos, totalUsuarios, filtered };
+    // Ticket Médio
+    const ticketMedio = totalPedidos > 0 ? totalFaturamento / totalPedidos : 0;
+
+    // Pedidos Pagos
+    const pedidosPagosSet = new Set();
+    filtered.forEach(item => {
+      const s = (item.status || "").toLowerCase();
+      if (s.includes("paid") || s.includes("conclu") || s.includes("retirada") || s.includes("pago")) {
+        if (item.id_pedido) pedidosPagosSet.add(item.id_pedido);
+      }
+    });
+    const totalPedidosPagos = pedidosPagosSet.size;
+
+    // Taxa Cancelamento
+    const pedidosCancelados = new Set();
+    filtered.forEach(item => {
+      const s = (item.status || "").toLowerCase();
+      if (s.includes("cancelado")) {
+        if (item.id_pedido) pedidosCancelados.add(item.id_pedido);
+      }
+    });
+    const taxaCancelamento = totalPedidos > 0 ? ((pedidosCancelados.size / totalPedidos) * 100) : 0;
+
+    // Revenue by Collection
+    const revenueByCollection = {};
+    filtered.forEach(item => {
+      const col = item.colecao || "Sem Coleção";
+      revenueByCollection[col] = (revenueByCollection[col] || 0) + (parseFloat(item.valor_total_item) || 0);
+    });
+    const collectionData = Object.entries(revenueByCollection)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
+    // Order Status Distribution
+    const statusByOrder = {};
+    filtered.forEach(item => {
+      if (item.id_pedido && !statusByOrder[item.id_pedido]) {
+        statusByOrder[item.id_pedido] = item.status;
+      }
+    });
+    const statusCounts = {};
+    Object.values(statusByOrder).forEach(s => {
+      const label = STATUS_LABELS[s] || s || "Outro";
+      statusCounts[label] = (statusCounts[label] || 0) + 1;
+    });
+    const statusData = Object.entries(statusCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
+    // Daily Revenue Trend (sort by actual date for correct chronological order)
+    const dailyRevenue = {};
+    filtered.forEach(item => {
+      try {
+        const d = new Date(item.data_venda);
+        if (!isValid(d)) return;
+        const key = d.toISOString().slice(0, 10); // YYYY-MM-DD for sorting
+        const label = format(d, "dd/MM");
+        if (!dailyRevenue[key]) dailyRevenue[key] = { label, total: 0 };
+        dailyRevenue[key].total += (parseFloat(item.valor_total_item) || 0);
+      } catch { /* skip malformed dates */ }
+    });
+    const trendData = Object.entries(dailyRevenue)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, { label, total }]) => ({ date: label, Receita: total }));
+
+    // Top Products
+    const productQty = {};
+    filtered.forEach(item => {
+      const prod = item.produto || "Desconhecido";
+      productQty[prod] = (productQty[prod] || 0) + (Number(item.quantidade) || 0);
+    });
+    const topProducts = Object.entries(productQty)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+
+    // Payment Methods
+    const paymentCounts = {};
+    filtered.forEach(item => {
+      const raw = item.pagamento || "Outro";
+      const label = PAYMENT_LABELS[raw] || raw;
+      paymentCounts[label] = (paymentCounts[label] || 0) + 1;
+    });
+    const paymentData = Object.entries(paymentCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
+    return {
+      totalFaturamento, totalPedidos, totalUsuarios, filtered,
+      ticketMedio, totalPedidosPagos, taxaCancelamento,
+      collectionData, statusData, trendData, topProducts, paymentData,
+    };
   }, [dateRange, rawData]);
 
   const handleDownloadExcel = async () => {
@@ -600,8 +707,8 @@ export default function DashboardAdmin({ onNavigate }) {
         </div>
       </header>
 
-      {/* KPI GRID - Ajustado para ser responsivo (1 coluna no mobile, 2 tablet, 3 PC) */}
-      <Grid numItems={1} numItemsSm={2} numItemsLg={3} className="gap-6 mb-8">
+      {/* KPI GRID */}
+      <Grid numItems={2} numItemsSm={3} numItemsLg={6} className="gap-4 sm:gap-6 mb-8">
         <KpiCard
           title="Pedidos Realizados"
           value={data.totalPedidos}
@@ -623,7 +730,112 @@ export default function DashboardAdmin({ onNavigate }) {
           color="orange"
           subtext="Receita no período"
         />
+        <KpiCard
+          title="Ticket Médio"
+          value={currencyFormatter(data.ticketMedio)}
+          icon={DollarSign}
+          color="violet"
+          subtext="Valor médio por pedido"
+        />
+        <KpiCard
+          title="Pedidos Pagos"
+          value={data.totalPedidosPagos}
+          icon={CheckCircle}
+          color="teal"
+          subtext="Confirmados / concluídos"
+        />
+        <KpiCard
+          title="Taxa Cancelamento"
+          value={`${data.taxaCancelamento.toFixed(1)}%`}
+          icon={XCircle}
+          color="rose"
+          subtext="Pedidos cancelados"
+        />
       </Grid>
+
+      {/* CHARTS ROW 1: Revenue by Collection + Order Status */}
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-8">
+        <div className="flex-1 min-w-0">
+          <ChartCard title="Receita por Coleção" subtitle="Faturamento agrupado por coleção">
+            {data.collectionData.length > 0 ? (
+              <BarList
+                data={data.collectionData}
+                color="sky"
+                className="text-white mt-2"
+                valueFormatter={currencyFormatter}
+              />
+            ) : (
+              <p className="text-xs text-slate-500 py-8 text-center">Sem dados no período</p>
+            )}
+          </ChartCard>
+        </div>
+        <div className="flex-1 min-w-0">
+          <ChartCard title="Distribuição por Status" subtitle="Status dos pedidos únicos">
+            {data.statusData.length > 0 ? (
+              <DonutChart
+                data={data.statusData}
+                category="value"
+                index="name"
+                colors={["sky", "amber", "emerald", "violet", "rose", "orange"]}
+                className="h-52"
+                showAnimation={true}
+              />
+            ) : (
+              <p className="text-xs text-slate-500 py-8 text-center">Sem dados no período</p>
+            )}
+          </ChartCard>
+        </div>
+      </div>
+
+      {/* CHARTS ROW 2: Sales Trend + Top Products */}
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mb-8">
+        <div className="flex-1 min-w-0">
+          <ChartCard title="Tendência de Vendas (Diário)" subtitle="Receita por dia no período">
+            {data.trendData.length > 0 ? (
+              <AreaChart
+                data={data.trendData}
+                index="date"
+                categories={["Receita"]}
+                colors={["sky"]}
+                className="h-52"
+                showAnimation={true}
+                valueFormatter={currencyFormatter}
+                curveType="monotone"
+              />
+            ) : (
+              <p className="text-xs text-slate-500 py-8 text-center">Sem dados no período</p>
+            )}
+          </ChartCard>
+        </div>
+        <div className="flex-1 min-w-0">
+          <ChartCard title="Top 10 Produtos" subtitle="Produtos mais vendidos por quantidade">
+            {data.topProducts.length > 0 ? (
+              <BarList
+                data={data.topProducts}
+                color="emerald"
+                className="text-white mt-2"
+              />
+            ) : (
+              <p className="text-xs text-slate-500 py-8 text-center">Sem dados no período</p>
+            )}
+          </ChartCard>
+        </div>
+      </div>
+
+      {/* CHARTS ROW 3: Payment Methods (full width) */}
+      <div className="mb-8">
+        <ChartCard title="Formas de Pagamento" subtitle="Distribuição por método de pagamento">
+          {data.paymentData.length > 0 ? (
+            <BarList
+              data={data.paymentData}
+              color="amber"
+              className="text-white mt-2"
+            />
+          ) : (
+            <p className="text-xs text-slate-500 py-8 text-center">Sem dados no período</p>
+          )}
+        </ChartCard>
+      </div>
 
       {/* RELATÓRIO / TABELA */}
       <Card
