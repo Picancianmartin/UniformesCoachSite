@@ -477,7 +477,7 @@ Minha dúvida é:
                               key={idx}
                               className="w-8 h-8 rounded-full bg-navy-light border border-white/10 flex items-center justify-center text-[10px] text-white/50 relative z-0"
                             >
-                              {item.isKit ? "K" : safeName.charAt(0)}
+                              {(item.isKit || item.is_kit) ? "K" : safeName.charAt(0)}
                             </div>
                           );
                         })}
@@ -666,7 +666,7 @@ Minha dúvida é:
                                   {item.collection || item.colecao}
                                 </span>
                               )}
-                              {item.isKit ? (
+                              {(item.isKit || item.is_kit) ? (
                                 <>
                                   <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
                                     T:{" "}
