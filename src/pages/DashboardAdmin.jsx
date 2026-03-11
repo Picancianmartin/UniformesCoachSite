@@ -36,13 +36,17 @@ const STATUS_LABELS = {
 const PAYMENT_LABELS = { credit_card: "Cartão", pickup: "Retirada", pix_manual: "Pix" };
 
 // --- HELPER: formata tamanho do item (Supabase order_items) ---
-function formatSize(item) {
-  if (item.is_kit === true) {
-    const top = item.size_top || "-";
-    const bot = item.size_bottom || "-";
+function formatSize(order) {
+  const orderItem = order.order_items && order.order_items[0];
+  if (!orderItem) return "-";
+
+  if (orderItem.is_kit === true) {
+    const top = orderItem.size_top || "-";
+    const bot = orderItem.size_bottom || "-";
     return `T:${top} / B:${bot}`;
   }
-  return item.size_standard || "-";
+
+  return orderItem.size_standard || "-";
 }
 
 // --- TEMA LIMPO E SÓLIDO ---
@@ -351,7 +355,38 @@ export default function DashboardAdmin({ onNavigate }) {
       const { data: result } = await supabase
         .from("view_dashboard_mestre")
         .select("*");
-      if (result) setRawData(result);
+
+      // Busca tamanhos da tabela order_items (só dos pedidos presentes na view)
+      const orderIds = [...new Set((result || []).map((r) => r.id_pedido).filter(Boolean))];
+      let sizes = [];
+      if (orderIds.length > 0) {
+        const { data: sizeData } = await supabase
+          .from("order_items")
+          .select("order_id, product_name, is_kit, size_top, size_bottom, size_standard")
+          .in("order_id", orderIds);
+        sizes = sizeData || [];
+      }
+
+      if (result) {
+        // Chave composta: order_id + product_name → item de tamanho
+        const sizeKey = (orderId, productName) =>
+          `${orderId}__${(productName || "").trim().toLowerCase()}`;
+        const sizeMap = {};
+        sizes.forEach((s) => {
+          sizeMap[sizeKey(s.order_id, s.product_name)] = s;
+        });
+
+        // Enriquece cada linha da view com o order_item correspondente
+        const enriched = result.map((row) => {
+          const matched = sizeMap[sizeKey(row.id_pedido, row.produto)];
+          return {
+            ...row,
+            order_items: matched ? [matched] : [],
+          };
+        });
+
+        setRawData(enriched);
+      }
       setLoading(false);
     }
     fetchData();

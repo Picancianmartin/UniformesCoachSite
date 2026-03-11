@@ -336,13 +336,17 @@ export async function exportToExcel({
   });
 
   // --- HELPER: formata tamanho do item (Supabase order_items) ---
-  function formatSizeExcel(item) {
-    if (item.is_kit === true) {
-      const top = item.size_top || "-";
-      const bot = item.size_bottom || "-";
+  function formatSizeExcel(order) {
+    const orderItem = order.order_items && order.order_items[0];
+    if (!orderItem) return "-";
+
+    if (orderItem.is_kit === true) {
+      const top = orderItem.size_top || "-";
+      const bot = orderItem.size_bottom || "-";
       return `T:${top} / B:${bot}`;
     }
-    return item.size_standard || "-";
+
+    return orderItem.size_standard || "-";
   }
 
   wsDados.columns = [
