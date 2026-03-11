@@ -9,9 +9,6 @@ import {
   Calendar,
   X,
   Check,
-  DollarSign,
-  CheckCircle,
-  XCircle,
 } from "lucide-react";
 import {
   subDays,
@@ -132,9 +129,6 @@ const KpiCard = ({ title, value, icon, color, subtext }) => {
     sky: { text: "text-sky-500", bg: "bg-sky-500/10", dot: "bg-sky-500" },
     orange: { text: "text-orange-500", bg: "bg-orange-500/10", dot: "bg-orange-500" },
     emerald: { text: "text-emerald-500", bg: "bg-emerald-500/10", dot: "bg-emerald-500" },
-    violet: { text: "text-violet-500", bg: "bg-violet-500/10", dot: "bg-violet-500" },
-    teal: { text: "text-teal-500", bg: "bg-teal-500/10", dot: "bg-teal-500" },
-    rose: { text: "text-rose-500", bg: "bg-rose-500/10", dot: "bg-rose-500" },
   };
   const c = colorMap[color] || colorMap.sky;
   const iconColor = c.text;
@@ -422,32 +416,8 @@ export default function DashboardAdmin({ onNavigate }) {
       filtered.map((d) => d.cliente?.trim().toLowerCase()).filter(Boolean),
     ).size;
 
-    // Ticket Médio
-    const ticketMedio = totalPedidos > 0 ? totalFaturamento / totalPedidos : 0;
-
-    // Pedidos Pagos
-    const pedidosPagosSet = new Set();
-    filtered.forEach(item => {
-      const s = (item.status || "").toLowerCase();
-      if (s.includes("paid") || s.includes("conclu") || s.includes("retirada") || s.includes("pago")) {
-        if (item.id_pedido) pedidosPagosSet.add(item.id_pedido);
-      }
-    });
-    const totalPedidosPagos = pedidosPagosSet.size;
-
-    // Taxa Cancelamento
-    const pedidosCancelados = new Set();
-    filtered.forEach(item => {
-      const s = (item.status || "").toLowerCase();
-      if (s.includes("cancelado")) {
-        if (item.id_pedido) pedidosCancelados.add(item.id_pedido);
-      }
-    });
-    const taxaCancelamento = totalPedidos > 0 ? ((pedidosCancelados.size / totalPedidos) * 100) : 0;
-
     return {
       totalFaturamento, totalPedidos, totalUsuarios, filtered,
-      ticketMedio, totalPedidosPagos, taxaCancelamento,
     };
   }, [dateRange, rawData]);
 
@@ -676,20 +646,13 @@ export default function DashboardAdmin({ onNavigate }) {
       </header>
 
       {/* KPI GRID */}
-      <Grid numItems={2} numItemsSm={3} numItemsLg={6} className="gap-4 sm:gap-6 mb-8">
+      <Grid numItems={1} numItemsSm={3} numItemsLg={3} className="gap-4 sm:gap-6 mb-8">
         <KpiCard
           title="Pedidos Realizados"
           value={data.totalPedidos}
           icon={ShoppingBag}
           color="sky"
           subtext="Volumes gerados"
-        />
-        <KpiCard
-          title="Usuários Únicos"
-          value={data.totalUsuarios}
-          icon={Users}
-          color="emerald"
-          subtext="Clientes distintos"
         />
         <KpiCard
           title="Faturamento Total"
@@ -699,25 +662,11 @@ export default function DashboardAdmin({ onNavigate }) {
           subtext="Receita no período"
         />
         <KpiCard
-          title="Ticket Médio"
-          value={currencyFormatter(data.ticketMedio)}
-          icon={DollarSign}
-          color="violet"
-          subtext="Valor médio por pedido"
-        />
-        <KpiCard
-          title="Pedidos Pagos"
-          value={data.totalPedidosPagos}
-          icon={CheckCircle}
-          color="teal"
-          subtext="Confirmados / concluídos"
-        />
-        <KpiCard
-          title="Taxa Cancelamento"
-          value={`${data.taxaCancelamento.toFixed(1)}%`}
-          icon={XCircle}
-          color="rose"
-          subtext="Pedidos cancelados"
+          title="Usuários Únicos"
+          value={data.totalUsuarios}
+          icon={Users}
+          color="emerald"
+          subtext="Clientes distintos"
         />
       </Grid>
 
