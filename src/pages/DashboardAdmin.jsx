@@ -9,6 +9,7 @@ import {
   Calendar,
   X,
   Check,
+  Trash2,
 } from "lucide-react";
 import {
   subDays,
@@ -433,6 +434,42 @@ export default function DashboardAdmin({ onNavigate }) {
     });
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    if (!orderId) {
+      alert("ID do pedido inválido.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Tem certeza que deseja excluir este pedido e todos os seus itens? Esta ação não pode ser desfeita.",
+    );
+    if (!confirmed) return;
+
+    try {
+      // 1. Exclui itens relacionados (order_items) primeiro
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("order_id", orderId);
+
+      if (itemsError) throw itemsError;
+
+      // 2. Exclui o pedido principal (orders)
+      const { error: orderError } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", orderId);
+
+      if (orderError) throw orderError;
+
+      // 3. Atualiza o estado local removendo todas as linhas deste pedido
+      setRawData((prev) => prev.filter((row) => row.id_pedido !== orderId));
+    } catch (err) {
+      console.error("Erro ao excluir pedido:", err);
+      alert("Erro ao excluir o pedido: " + (err.message || "Tente novamente."));
+    }
+  };
+
   if (loading) {
     return (
       <div
@@ -724,6 +761,9 @@ export default function DashboardAdmin({ onNavigate }) {
                 <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider text-right whitespace-nowrap">
                   Total
                 </th>
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider text-center whitespace-nowrap">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -787,12 +827,21 @@ export default function DashboardAdmin({ onNavigate }) {
                         parseFloat(item.valor_total_item) || 0,
                       )}
                     </td>
+                    <td className="border border-white/10 px-3 py-1.5 text-center">
+                      <button
+                        onClick={() => handleDeleteOrder(item.id_pedido)}
+                        title="Excluir pedido"
+                        className="inline-flex items-center justify-center p-1.5 rounded-lg text-rose-400/70 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     className="border border-white/10 text-center py-16 text-slate-500"
                   >
                     Nenhum pedido encontrado neste período.
@@ -829,6 +878,7 @@ export default function DashboardAdmin({ onNavigate }) {
                       ),
                     )}
                   </td>
+                  <td className="border border-white/10 px-3 py-3 bg-[#0a275c]/50"></td>
                 </tr>
               </tfoot>
             )}
