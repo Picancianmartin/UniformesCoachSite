@@ -335,15 +335,14 @@ export async function exportToExcel({
     views: [{ state: "frozen", ySplit: 1 }], // Congela apenas o cabeçalho da tabela
   });
 
-  // --- HELPER: formata tamanho do item ---
+  // --- HELPER: formata tamanho do item (Supabase order_items) ---
   function formatSizeExcel(item) {
-    const isKit = item.is_kit || item.isKit;
-    if (isKit) {
-      const top = item.size_top || item.tamanho_top || "?";
-      const bot = item.size_bottom || item.tamanho_bottom || "?";
+    if (item.is_kit === true) {
+      const top = item.size_top || "-";
+      const bot = item.size_bottom || "-";
       return `T:${top} / B:${bot}`;
     }
-    return item.size_standard || item.tamanho || item.tamanho_standard || "-";
+    return item.size_standard || "-";
   }
 
   wsDados.columns = [

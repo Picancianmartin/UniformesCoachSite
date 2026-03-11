@@ -35,15 +35,14 @@ const STATUS_LABELS = {
 };
 const PAYMENT_LABELS = { credit_card: "Cartão", pickup: "Retirada", pix_manual: "Pix" };
 
-// --- HELPER: formata tamanho do item ---
+// --- HELPER: formata tamanho do item (Supabase order_items) ---
 function formatSize(item) {
-  const isKit = item.is_kit || item.isKit;
-  if (isKit) {
-    const top = item.size_top || item.tamanho_top || "?";
-    const bot = item.size_bottom || item.tamanho_bottom || "?";
+  if (item.is_kit === true) {
+    const top = item.size_top || "-";
+    const bot = item.size_bottom || "-";
     return `T:${top} / B:${bot}`;
   }
-  return item.size_standard || item.tamanho || item.tamanho_standard || "-";
+  return item.size_standard || "-";
 }
 
 // --- TEMA LIMPO E SÓLIDO ---
