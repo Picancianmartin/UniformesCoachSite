@@ -590,58 +590,58 @@ const PaymentScreen = ({ onNavigate, cartItems, user, onClearCart }) => {
 
 export default PaymentScreen;
 
-// --- FUNÇÃO AUXILIAR PARA GERAR O PAYLOAD DO PIX (EMV) ---
-// Cole isso no FINAL do seu arquivo PaymentScreen.jsx, fora do componente principal
+// // --- FUNÇÃO AUXILIAR PARA GERAR O PAYLOAD DO PIX (EMV) ---
+// // Cole isso no FINAL do seu arquivo PaymentScreen.jsx, fora do componente principal
 
-function generatePixPayload(key, name, city, amount, txid) {
-  const formatField = (id, value) => {
-    const len = value.length.toString().padStart(2, "0");
-    return `${id}${len}${value}`;
-  };
+// function generatePixPayload(key, name, city, amount, txid) 
+//   const formatField = (id, value) => {
+//     const len = value.length.toString().padStart(2, "0");
+//     return `${id}${len}${value}`;
+//   };
 
-  // 1. Tratamento de Strings
-  const merchantName = name
-    .substring(0, 25)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  const merchantCity = city
-    .substring(0, 15)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  const txtId = txid || "***"; // Se não tiver ID, usa ***
+//   // 1. Tratamento de Strings
+//   const merchantName = name
+//     .substring(0, 25)
+//     .normalize("NFD")
+//     .replace(/[\u0300-\u036f]/g, "");
+//   const merchantCity = city
+//     .substring(0, 15)
+//     .normalize("NFD")
+//     .replace(/[\u0300-\u036f]/g, "");
+//   const txtId = txid || "***"; // Se não tiver ID, usa ***
 
-  // 2. Montagem do Payload
-  const payload = [
-    formatField("00", "01"), // Payload Format Indicator
-    formatField(
-      "26",
-      [formatField("00", "br.gov.bcb.pix"), formatField("01", key)].join(""),
-    ), // Merchant Account Information
-    formatField("52", "0000"), // Merchant Category Code
-    formatField("53", "986"), // Transaction Currency (BRL)
-    formatField("54", amount), // Transaction Amount
-    formatField("58", "BR"), // Country Code
-    formatField("59", merchantName), // Merchant Name
-    formatField("60", merchantCity), // Merchant City
-    formatField("62", formatField("05", txtId)), // Additional Data Field Template
-    "6304", // CRC16 ID + Length
-  ].join("");
+//   // 2. Montagem do Payload
+//   const payload = [
+//     formatField("00", "01"), // Payload Format Indicator
+//     formatField(
+//       "26",
+//       [formatField("00", "br.gov.bcb.pix"), formatField("01", key)].join(""),
+//     ), // Merchant Account Information
+//     formatField("52", "0000"), // Merchant Category Code
+//     formatField("53", "986"), // Transaction Currency (BRL)
+//     formatField("54", amount), // Transaction Amount
+//     formatField("58", "BR"), // Country Code
+//     formatField("59", merchantName), // Merchant Name
+//     formatField("60", merchantCity), // Merchant City
+//     formatField("62", formatField("05", txtId)), // Additional Data Field Template
+//     "6304", // CRC16 ID + Length
+//   ].join("");
 
-  // 3. Cálculo do CRC16 (Polinômio 0x1021)
-  const getCRC16 = (str) => {
-    let crc = 0xffff;
-    for (let i = 0; i < str.length; i++) {
-      crc ^= str.charCodeAt(i) << 8;
-      for (let j = 0; j < 8; j++) {
-        if ((crc & 0x8000) !== 0) {
-          crc = (crc << 1) ^ 0x1021;
-        } else {
-          crc = crc << 1;
-        }
-      }
-    }
-    return (crc & 0xffff).toString(16).toUpperCase().padStart(4, "0");
-  };
+//   // 3. Cálculo do CRC16 (Polinômio 0x1021)
+//   const getCRC16 = (str) => {
+//     let crc = 0xffff;
+//     for (let i = 0; i < str.length; i++) {
+//       crc ^= str.charCodeAt(i) << 8;
+//       for (let j = 0; j < 8; j++) {
+//         if ((crc & 0x8000) !== 0) {
+//           crc = (crc << 1) ^ 0x1021;
+//         } else {
+//           crc = crc << 1;
+//         }
+//       }
+//     }
+//     return (crc & 0xffff).toString(16).toUpperCase().padStart(4, "0");
+//   };
 
-  return `${payload}${getCRC16(payload)}`;
-}
+//   return `${payload}${getCRC16(payload)}`;
+
