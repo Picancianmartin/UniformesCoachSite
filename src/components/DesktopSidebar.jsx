@@ -24,7 +24,7 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
               onClick={() => onNavigate(item.id)}
               className={`
                 relative w-[4.5rem] h-[4.5rem] rounded-2xl flex flex-col items-center justify-center gap-2
-                transition-all duration-300 group
+                transition-all duration-300 group overflow-hidden
                 ${isActive
                   ? "bg-primary/15 text-primary shadow-[0_0_20px_rgba(0,123,186,0.15)]"
                   : "text-white/40 hover:text-white/80 hover:bg-white/5"
@@ -53,7 +53,7 @@ const DesktopSidebar = ({ active, onNavigate, cartCount = 0 }) => {
               </div>
 
               <span
-                className={`text-sm font-medium transition-all duration-300 max-w-full truncate ${
+                className={`text-sm font-medium transition-all duration-300 max-w-full min-w-0 truncate ${
                   isActive ? "font-bold opacity-100" : "opacity-60"
                 }`}
               >

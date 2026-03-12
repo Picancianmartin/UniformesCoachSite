@@ -27,7 +27,7 @@ const BottomNav = ({ active, onNavigate, cartCount = 0 }) => {
               onClick={() => onNavigate(item.id)}
               className={`
                 relative flex flex-col items-center justify-center w-full h-full gap-1 
-                transition-all duration-300 group
+                transition-all duration-300 group overflow-hidden
                 ${isActive ? 'text-primary' : 'text-white/40 hover:text-white/60'}
               `}
             >
@@ -53,7 +53,7 @@ const BottomNav = ({ active, onNavigate, cartCount = 0 }) => {
               </div>
 
               {/* Label */}
-              <span className={`text-[10px] tracking-wide transition-all duration-300 max-w-full truncate ${isActive ? 'font-bold opacity-100 translate-y-0' : 'font-medium opacity-60'}`}>
+              <span className={`text-[10px] tracking-wide transition-all duration-300 max-w-full min-w-0 truncate ${isActive ? 'font-bold opacity-100 translate-y-0' : 'font-medium opacity-60'}`}>
                 {item.label}
               </span>
             </button>
