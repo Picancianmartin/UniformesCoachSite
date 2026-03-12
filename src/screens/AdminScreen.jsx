@@ -125,6 +125,9 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
     setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
   };
 
+  // Loading de exclusão
+  const [deletingOrderId, setDeletingOrderId] = useState(null);
+
   // Estado para o Modal de Status
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [selectedOrderForStatus, setSelectedOrderForStatus] = useState(null);
@@ -501,6 +504,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
     );
     if (!confirmed) return;
 
+    setDeletingOrderId(orderId);
     try {
       const { error: itemsError } = await supabase
         .from("order_items")
@@ -521,6 +525,8 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
     } catch (err) {
       console.error("Erro ao excluir pedido:", err);
       showToast("Erro ao excluir o pedido: " + (err.message || "Tente novamente."), "error");
+    } finally {
+      setDeletingOrderId(null);
     }
   };
 
@@ -945,9 +951,14 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                             </button>
                             <button
                               onClick={() => handleDeleteOrder(order.id)}
-                              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-600/20 border-b-4 border-rose-800 active:border-0 active:translate-y-1"
+                              disabled={deletingOrderId === order.id}
+                              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-600/20 border-b-4 border-rose-800 active:border-0 active:translate-y-1 disabled:opacity-60 disabled:cursor-not-allowed"
                             >
-                              <Trash2 size={14} /> Excluir
+                              {deletingOrderId === order.id ? (
+                                <><Loader size={14} className="animate-spin" /> Excluindo...</>
+                              ) : (
+                                <><Trash2 size={14} /> Excluir</>
+                              )}
                             </button>
                           </div>
                           <p className="text-[10px] font-bold text-white/30 uppercase mb-3 flex items-center gap-2">
