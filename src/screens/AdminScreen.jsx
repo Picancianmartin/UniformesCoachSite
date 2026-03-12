@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../services/supabase";
 import CollectionSelector from "../components/CollectionSelector";
+import Toast from "../components/Toast";
 import {
   Package,
   LogOut,
@@ -116,6 +117,16 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("todos");
   const [expandedOrder, setExpandedOrder] = useState(null);
+
+  // Toast
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
+  };
+
+  // Loading de exclusão
+  const [deletingOrderId, setDeletingOrderId] = useState(null);
 
   // Estado para o Modal de Status
   const [statusModalOpen, setStatusModalOpen] = useState(false);
@@ -482,6 +493,43 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
   };
   const copyToClipboard = (text) => navigator.clipboard.writeText(text);
   // --- FUNÇÃO WHATSAPP MELHORADA (ADMIN -> CLIENTE) ---
+  const handleDeleteOrder = async (orderId) => {
+    if (!orderId) {
+      showToast("ID do pedido inválido.", "error");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.",
+    );
+    if (!confirmed) return;
+
+    setDeletingOrderId(orderId);
+    try {
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("order_id", orderId);
+
+      if (itemsError) throw itemsError;
+
+      const { error: orderError } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", orderId);
+
+      if (orderError) throw orderError;
+
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      showToast("Pedido excluído com sucesso!", "success");
+    } catch (err) {
+      console.error("Erro ao excluir pedido:", err);
+      showToast("Erro ao excluir o pedido: " + (err.message || "Tente novamente."), "error");
+    } finally {
+      setDeletingOrderId(null);
+    }
+  };
+
   const openWhatsApp = (order) => {
     // 1. Validação básica
     if (!order) return alert("Erro: Pedido inválido");
@@ -626,6 +674,12 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-navy font-outfit text-white pb-24 relative selection:bg-primary/30">
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
       {/* HEADER */}
       <div className="pt-8 px-6 pb-6 bg-navy/90 backdrop-blur-xl sticky top-0 z-20 border-b border-white/5 shadow-2xl shadow-black/20">
         {/* Container Flex para alinhar Esquerda e Direita */}
@@ -882,7 +936,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
 
                       {isExpanded && (
                         <div className="bg-black/20 p-5 border-t border-white/5 animate-slide-down">
-                          <div className="grid grid-cols-2 gap-3 mb-6">
+                          <div className="grid grid-cols-3 gap-3 mb-6">
                             <button
                               onClick={() => openStatusModal(order)}
                               className="bg-primary hover:bg-primary-dark text-white text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 border-b-4 border-primary-dark active:border-0 active:translate-y-1"
@@ -894,6 +948,17 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                               className="bg-[#25D366] hover:bg-[#1ebc57] text-black text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/20 border-b-4 border-[#128c7e] active:border-0 active:translate-y-1"
                             >
                               <MessageCircle size={14} /> WhatsApp
+                            </button>
+                            <button
+                              onClick={() => handleDeleteOrder(order.id)}
+                              disabled={deletingOrderId === order.id}
+                              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-600/20 border-b-4 border-rose-800 active:border-0 active:translate-y-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                              {deletingOrderId === order.id ? (
+                                <><Loader size={14} className="animate-spin" /> Excluindo...</>
+                              ) : (
+                                <><Trash2 size={14} /> Excluir</>
+                              )}
                             </button>
                           </div>
                           <p className="text-[10px] font-bold text-white/30 uppercase mb-3 flex items-center gap-2">

@@ -225,10 +225,13 @@ const AccountScreen = ({ onNavigate, user, onLogout, isAdmin }) => {
 
             // Detalhe do tamanho (inteligente)
             let sizeInfo = "";
-            if (item.isKit) {
-              sizeInfo = `[Top:${item.size_top || "?"}/Bot:${item.size_bottom || "?"}]`;
+            if (item.isKit || item.is_kit) {
+              const top = item.selectedSizes?.top || item.size_top || "?";
+              const bot = item.selectedSizes?.bottom || item.size_bottom || "?";
+              sizeInfo = `[Top:${top}/Bot:${bot}]`;
             } else {
-              sizeInfo = `[${item.size_standard || "U"}]`;
+              const std = item.selectedSizes?.standard || item.size_standard || "U";
+              sizeInfo = `[${std}]`;
             }
 
             return `▪️ ${qtd}x ${nome} ${textoColecao} ${sizeInfo}`;
@@ -474,7 +477,7 @@ Minha dúvida é:
                               key={idx}
                               className="w-8 h-8 rounded-full bg-navy-light border border-white/10 flex items-center justify-center text-[10px] text-white/50 relative z-0"
                             >
-                              {item.isKit ? "K" : safeName.charAt(0)}
+                              {(item.isKit || item.is_kit) ? "K" : safeName.charAt(0)}
                             </div>
                           );
                         })}
@@ -663,7 +666,7 @@ Minha dúvida é:
                                   {item.collection || item.colecao}
                                 </span>
                               )}
-                              {item.isKit ? (
+                              {(item.isKit || item.is_kit) ? (
                                 <>
                                   <span className="text-[10px] bg-navy-light px-2 py-0.5 rounded text-white/50 border border-white/5">
                                     T:{" "}

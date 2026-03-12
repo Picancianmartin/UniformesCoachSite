@@ -277,7 +277,6 @@ const HomeScreen = ({ onNavigate, cartItems = [], user }) => {
         </div>
       </div>
 
-     
     </div>
   );
 };

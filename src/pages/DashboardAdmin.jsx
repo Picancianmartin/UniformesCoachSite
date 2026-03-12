@@ -24,6 +24,28 @@ import {
 import { supabase } from "../services/supabase";
 import { exportToExcel } from "../utils/exportToExcel";
 
+// --- STATIC LABEL MAPS ---
+const STATUS_LABELS = {
+  paid: "Pago", pending: "Pendente", "Em Produção": "Em Produção",
+  "Aguardando Comprovante": "Aguard. Comprovante", "Retirada Pendente": "Retirada Pendente",
+  "Concluído": "Concluído", "cancelado": "Cancelado",
+};
+const PAYMENT_LABELS = { credit_card: "Cartão", pickup: "Retirada", pix_manual: "Pix" };
+
+// --- HELPER: formata tamanho do item (Supabase order_items) ---
+function formatSize(order) {
+  const orderItem = order.order_items && order.order_items[0];
+  if (!orderItem) return "-";
+
+  if (orderItem.is_kit === true) {
+    const top = orderItem.size_top || "-";
+    const bot = orderItem.size_bottom || "-";
+    return `T:${top} / B:${bot}`;
+  }
+
+  return orderItem.size_standard || "-";
+}
+
 // --- TEMA LIMPO E SÓLIDO ---
 const THEME = {
   bg: "bg-[#000D23]",
@@ -103,18 +125,14 @@ const currencyFormatter = (number) =>
 // --- COMPONENTES VISUAIS ---
 const KpiCard = ({ title, value, icon, color, subtext }) => {
   const IconComponent = icon;
-  const iconColor =
-    color === "orange"
-      ? "text-orange-500"
-      : color === "emerald"
-        ? "text-emerald-500"
-        : "text-sky-500";
-  const iconBg =
-    color === "orange"
-      ? "bg-orange-500/10"
-      : color === "emerald"
-        ? "bg-emerald-500/10"
-        : "bg-sky-500/10";
+  const colorMap = {
+    sky: { text: "text-sky-500", bg: "bg-sky-500/10", dot: "bg-sky-500" },
+    orange: { text: "text-orange-500", bg: "bg-orange-500/10", dot: "bg-orange-500" },
+    emerald: { text: "text-emerald-500", bg: "bg-emerald-500/10", dot: "bg-emerald-500" },
+  };
+  const c = colorMap[color] || colorMap.sky;
+  const iconColor = c.text;
+  const iconBg = c.bg;
 
   return (
     <div
@@ -137,13 +155,7 @@ const KpiCard = ({ title, value, icon, color, subtext }) => {
       {subtext && (
         <div className="mt-4 flex items-center gap-2">
           <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              color === "orange"
-                ? "bg-orange-500"
-                : color === "emerald"
-                  ? "bg-emerald-500"
-                  : "bg-sky-500"
-            }`}
+            className={`w-1.5 h-1.5 rounded-full ${c.dot}`}
           />
           <p className="text-xs text-slate-400 font-medium">{subtext}</p>
         </div>
@@ -337,7 +349,38 @@ export default function DashboardAdmin({ onNavigate }) {
       const { data: result } = await supabase
         .from("view_dashboard_mestre")
         .select("*");
-      if (result) setRawData(result);
+
+      // Busca tamanhos da tabela order_items (só dos pedidos presentes na view)
+      const orderIds = [...new Set((result || []).map((r) => r.id_pedido).filter(Boolean))];
+      let sizes = [];
+      if (orderIds.length > 0) {
+        const { data: sizeData } = await supabase
+          .from("order_items")
+          .select("order_id, product_name, is_kit, size_top, size_bottom, size_standard")
+          .in("order_id", orderIds);
+        sizes = sizeData || [];
+      }
+
+      if (result) {
+        // Chave composta: order_id + product_name → item de tamanho
+        const sizeKey = (orderId, productName) =>
+          `${orderId}__${(productName || "").trim().toLowerCase()}`;
+        const sizeMap = {};
+        sizes.forEach((s) => {
+          sizeMap[sizeKey(s.order_id, s.product_name)] = s;
+        });
+
+        // Enriquece cada linha da view com o order_item correspondente
+        const enriched = result.map((row) => {
+          const matched = sizeMap[sizeKey(row.id_pedido, row.produto)];
+          return {
+            ...row,
+            order_items: matched ? [matched] : [],
+          };
+        });
+
+        setRawData(enriched);
+      }
       setLoading(false);
     }
     fetchData();
@@ -373,7 +416,9 @@ export default function DashboardAdmin({ onNavigate }) {
       filtered.map((d) => d.cliente?.trim().toLowerCase()).filter(Boolean),
     ).size;
 
-    return { totalFaturamento, totalPedidos, totalUsuarios, filtered };
+    return {
+      totalFaturamento, totalPedidos, totalUsuarios, filtered,
+    };
   }, [dateRange, rawData]);
 
   const handleDownloadExcel = async () => {
@@ -387,6 +432,7 @@ export default function DashboardAdmin({ onNavigate }) {
       dateRange,
     });
   };
+
 
   if (loading) {
     return (
@@ -600,8 +646,8 @@ export default function DashboardAdmin({ onNavigate }) {
         </div>
       </header>
 
-      {/* KPI GRID - Ajustado para ser responsivo (1 coluna no mobile, 2 tablet, 3 PC) */}
-      <Grid numItems={1} numItemsSm={2} numItemsLg={3} className="gap-6 mb-8">
+      {/* KPI GRID */}
+      <Grid numItems={1} numItemsSm={3} numItemsLg={3} className="gap-4 sm:gap-6 mb-8">
         <KpiCard
           title="Pedidos Realizados"
           value={data.totalPedidos}
@@ -610,18 +656,18 @@ export default function DashboardAdmin({ onNavigate }) {
           subtext="Volumes gerados"
         />
         <KpiCard
-          title="Usuários Únicos"
-          value={data.totalUsuarios}
-          icon={Users}
-          color="emerald"
-          subtext="Clientes distintos"
-        />
-        <KpiCard
           title="Faturamento Total"
           value={currencyFormatter(data.totalFaturamento)}
           icon={Wallet}
           color="orange"
           subtext="Receita no período"
+        />
+        <KpiCard
+          title="Usuários Únicos"
+          value={data.totalUsuarios}
+          icon={Users}
+          color="emerald"
+          subtext="Clientes distintos"
         />
       </Grid>
 
@@ -649,7 +695,7 @@ export default function DashboardAdmin({ onNavigate }) {
 
         {/* Wrapper de Scroll Horizontal com min-w para a tabela não espremer */}
         <div className="overflow-x-auto w-full max-h-[600px] overflow-y-auto bg-[#000D23]/50 rounded-b-2xl border-t border-white/10">
-          <table className="w-full min-w-[900px] text-left border-collapse text-sm">
+          <table className="w-full min-w-[1000px] text-left border-collapse text-sm">
             <thead className="sticky top-0 bg-[#0a275c] z-10 shadow-md">
               <tr>
                 <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
@@ -660,6 +706,9 @@ export default function DashboardAdmin({ onNavigate }) {
                 </th>
                 <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
                   Produto
+                </th>
+                <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
+                  Tamanho
                 </th>
                 <th className="border border-white/10 px-3 py-2 text-slate-300 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">
                   Coleção
@@ -693,6 +742,9 @@ export default function DashboardAdmin({ onNavigate }) {
                     </td>
                     <td className="border border-white/10 px-3 py-1.5 text-slate-300 min-w-[200px]">
                       {item.produto}
+                    </td>
+                    <td className="border border-white/10 px-3 py-1.5 text-slate-400 whitespace-nowrap text-center font-mono text-xs">
+                      {formatSize(item)}
                     </td>
                     <td className="border border-white/10 px-3 py-1.5 text-slate-400">
                       {item.colecao || "-"}
@@ -741,7 +793,7 @@ export default function DashboardAdmin({ onNavigate }) {
               ) : (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="border border-white/10 text-center py-16 text-slate-500"
                   >
                     Nenhum pedido encontrado neste período.
@@ -754,7 +806,7 @@ export default function DashboardAdmin({ onNavigate }) {
               <tfoot className="sticky bottom-0 bg-[#051e47] z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.2)]">
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="border border-white/10 px-3 py-3 text-right text-slate-300 font-bold uppercase tracking-wider text-xs whitespace-nowrap"
                   >
                     Totais do Período:
