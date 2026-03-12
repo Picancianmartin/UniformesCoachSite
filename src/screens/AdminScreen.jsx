@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../services/supabase";
 import CollectionSelector from "../components/CollectionSelector";
+import Toast from "../components/Toast";
 import {
   Package,
   LogOut,
@@ -116,6 +117,13 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("todos");
   const [expandedOrder, setExpandedOrder] = useState(null);
+
+  // Toast
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
+  };
 
   // Estado para o Modal de Status
   const [statusModalOpen, setStatusModalOpen] = useState(false);
@@ -484,12 +492,12 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
   // --- FUNÇÃO WHATSAPP MELHORADA (ADMIN -> CLIENTE) ---
   const handleDeleteOrder = async (orderId) => {
     if (!orderId) {
-      alert("ID do pedido inválido.");
+      showToast("ID do pedido inválido.", "error");
       return;
     }
 
     const confirmed = window.confirm(
-      "Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.",
+      "Tem certeza que deseja excluir este pedido e todos os seus itens? Esta ação não pode ser desfeita.",
     );
     if (!confirmed) return;
 
@@ -509,9 +517,10 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
       if (orderError) throw orderError;
 
       setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      showToast("Pedido excluído com sucesso!", "success");
     } catch (err) {
       console.error("Erro ao excluir pedido:", err);
-      alert("Erro ao excluir o pedido: " + (err.message || "Tente novamente."));
+      showToast("Erro ao excluir o pedido: " + (err.message || "Tente novamente."), "error");
     }
   };
 
@@ -659,6 +668,12 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-navy font-outfit text-white pb-24 relative selection:bg-primary/30">
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
       {/* HEADER */}
       <div className="pt-8 px-6 pb-6 bg-navy/90 backdrop-blur-xl sticky top-0 z-20 border-b border-white/5 shadow-2xl shadow-black/20">
         {/* Container Flex para alinhar Esquerda e Direita */}
