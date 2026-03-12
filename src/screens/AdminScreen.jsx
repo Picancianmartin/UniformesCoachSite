@@ -500,7 +500,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
     }
 
     const confirmed = window.confirm(
-      "Tem certeza que deseja excluir este pedido e todos os seus itens? Esta ação não pode ser desfeita.",
+      "Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.",
     );
     if (!confirmed) return;
 
