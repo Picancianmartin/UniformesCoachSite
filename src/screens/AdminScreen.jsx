@@ -482,6 +482,39 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
   };
   const copyToClipboard = (text) => navigator.clipboard.writeText(text);
   // --- FUNÇÃO WHATSAPP MELHORADA (ADMIN -> CLIENTE) ---
+  const handleDeleteOrder = async (orderId) => {
+    if (!orderId) {
+      alert("ID do pedido inválido.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Tem certeza que deseja excluir este pedido e todos os seus itens? Esta ação não pode ser desfeita.",
+    );
+    if (!confirmed) return;
+
+    try {
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .delete()
+        .eq("order_id", orderId);
+
+      if (itemsError) throw itemsError;
+
+      const { error: orderError } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", orderId);
+
+      if (orderError) throw orderError;
+
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    } catch (err) {
+      console.error("Erro ao excluir pedido:", err);
+      alert("Erro ao excluir o pedido: " + (err.message || "Tente novamente."));
+    }
+  };
+
   const openWhatsApp = (order) => {
     // 1. Validação básica
     if (!order) return alert("Erro: Pedido inválido");
@@ -882,7 +915,7 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
 
                       {isExpanded && (
                         <div className="bg-black/20 p-5 border-t border-white/5 animate-slide-down">
-                          <div className="grid grid-cols-2 gap-3 mb-6">
+                          <div className="grid grid-cols-3 gap-3 mb-6">
                             <button
                               onClick={() => openStatusModal(order)}
                               className="bg-primary hover:bg-primary-dark text-white text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 border-b-4 border-primary-dark active:border-0 active:translate-y-1"
@@ -894,6 +927,12 @@ const AdminScreen = ({ onNavigate, onLogout }) => {
                               className="bg-[#25D366] hover:bg-[#1ebc57] text-black text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/20 border-b-4 border-[#128c7e] active:border-0 active:translate-y-1"
                             >
                               <MessageCircle size={14} /> WhatsApp
+                            </button>
+                            <button
+                              onClick={() => handleDeleteOrder(order.id)}
+                              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-600/20 border-b-4 border-rose-800 active:border-0 active:translate-y-1"
+                            >
+                              <Trash2 size={14} /> Excluir
                             </button>
                           </div>
                           <p className="text-[10px] font-bold text-white/30 uppercase mb-3 flex items-center gap-2">
